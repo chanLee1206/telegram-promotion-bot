@@ -12,7 +12,4 @@ headers = {
 # Make the GET request
 response = requests.get(url, headers=headers)
 
-if response.status_code == 200:
-    print(response.json().get('result'))  # Use .json() to parse the response as JSON
-else:
-    print(f"Error: {response.status_code} - {response.text}")
+print(response.json().get('result'))  # Use .json() to parse the response as JSON
