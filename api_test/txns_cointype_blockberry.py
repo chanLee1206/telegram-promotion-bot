@@ -1,13 +1,8 @@
 import requests
 
-# nft Collection Info
-# url = "https://api.blockberry.one/sui/v1/collections/0xcc2650b0d0b949e9cf4da71c22377fcbb78d71ce9cf0fed3e724ed3e2dc57813%3A%3Aboredapesuiclub_collection%3A%3ABoredApeSuiClub"
-
+coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
 # token transaction Info https://api.blockberry.one/sui/v1/coins/{coinType}/transactions
-url = "https://api.blockberry.one/sui/v1/coins/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY/transactions?page=0&size=3&orderBy=DESC&sortBy=AGE"
-
-# https://api.blockberry.one/sui/v1/coins/{coinType}/holders
-# url = "https://api.blockberry.one/sui/v1/coins/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY/holders?page=0&size=20&orderBy=DESC&sortBy=AMOUNT"
+url = f"https://api.blockberry.one/sui/v1/coins/{coin_type}/transactions?page=0&size=5&orderBy=DESC&sortBy=AGE"
 
 # Set the headers, including the API key
 headers = {

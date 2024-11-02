@@ -3,14 +3,11 @@ import requests
 # nft Collection Info
 # url = "https://api.blockberry.one/sui/v1/collections/0xcc2650b0d0b949e9cf4da71c22377fcbb78d71ce9cf0fed3e724ed3e2dc57813%3A%3Aboredapesuiclub_collection%3A%3ABoredApeSuiClub"
 
-# token transaction Info https://api.blockberry.one/sui/v1/coins/{coinType}/transactions
-# url = "https://api.blockberry.one/sui/v1/coins/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY/transactions?page=0&size=3&orderBy=DESC&sortBy=AGE"
-
 # https://api.blockberry.one/sui/v1/coins/{coinType}/holders
-# url = "https://api.blockberry.one/sui/v1/coins/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY/holders?page=0&size=20&orderBy=DESC&sortBy=AMOUNT"
+url = "https://api.blockberry.one/sui/v1/coins/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY/holders?page=0&size=20&orderBy=DESC&sortBy=AMOUNT"
 
 # getRawTransactionByHash
-url = "https://api.blockberry.one/sui/v1/raw-transactions/2fR8wZUP6XvxGYipknNfaeGRnPKcbovWYrGxVru3tASQ"
+# url = "https://api.blockberry.one/sui/v1/raw-transactions/2fR8wZUP6XvxGYipknNfaeGRnPKcbovWYrGxVru3tASQ"
 # Set the headers, including the API key
 headers = {
     "accept": "*/*",
