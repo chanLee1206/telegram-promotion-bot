@@ -7,7 +7,7 @@ url = f"https://api.blockberry.one/sui/v1/coins/{coin_type}/transactions?page=0&
 # Set the headers, including the API key
 headers = {
     "accept": "*/*",
-    "x-api-key": "MVPNEj1vnMdkHsYrZppVgcoqYbJWcH"  # Replace with your actual API key
+    "x-api-key": "Lmn3IP5rbjuULtIJLNzUWJGfmbymVE"  # Replace with your actual API key
 }
 
 response = requests.post(url, headers=headers)

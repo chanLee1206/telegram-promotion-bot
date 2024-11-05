@@ -5,6 +5,7 @@ import string
 from datetime import datetime, timedelta
 from telegram.constants import ParseMode
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+# from telegram import  InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 def generate_random_transaction():
@@ -29,37 +30,39 @@ def generate_random_transaction():
         "coin_ranking": coin_ranking
     }
 
-async def send_info_board(context: ContextTypes.DEFAULT_TYPE, chat_id: str) -> None:
-    transaction = generate_random_transaction()
+async def send_info_board(bot, chat_id: str, txn_info) -> None:
+    # transaction = generate_random_transaction()
+    # {'digest': '4DsF3wo9BPjYqe6dE7XiGCtpCSDrxHFKuVwa1dqd3yFF', 'time': '2024-11-04 16:40:38', 'coinName': 'Ancy Peosi', 'coinType': '0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY', 'price': '0.0000037975401766068425741056', 'decimals': 6, 'function': 'sell', 'marketCap': '37975.4018', 'realUnitCoinAmount': 71.719221024, 'realCurCoinAmount': -65642166.187885}
+    print(txn_info)
 
     # Format price variation with + or - sign as needed
-    price_variation_str = f"{'+' if transaction['price_variation'] > 0 else ''}{transaction['price_variation']}% | Txn\n"
+    # price_variation_str = f"{'+' if transaction['price_variation'] > 0 else ''}{transaction['price_variation']}% | Txn\n"
 
     # Styled message content with header and updated arrow icons
     message = (
         f"<b>Sui Trending</b>\n"  # Simulated green header with a green dot
-        f"<b>{transaction['coin_name']} {transaction['txn_type']}!</b>\n\n"  # Bolded for emphasis
+        f"<b>${txn_info['coinName']} {txn_info['function']}!</b>\n\n"  # Bolded for emphasis
         "🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢\n\n"  # Green dots with line break
-        f"➡️ <b>{transaction['sui_cost']} SUI</b> (${transaction['sui_cost'] * 1.83:.2f})\n"  # Green right arrow
-        f"⬅️ <b>{transaction['coin_amount']:,} {transaction['coin_name'][1:]}</b>\n\n"  # Yellow left arrow for coin amount
-        f"👤 <a href='https://example.com/txn/{transaction['txn_id']}'>0x{transaction['txn_id']}</a>: "
-        f"{price_variation_str}"  # Display formatted price variation with line break
-        f"💧 <b>Liquidity:</b> {transaction['liquidity']}\n"
-        f"🏛️ <b>Market Cap:</b> {transaction['mcap']}\n"
+        f"➡️ <b>{txn_info['realUnitCoinAmount']:.2f} SUI</b> (${txn_info['realUnitCoinAmount'] * 1.98:.2f})\n"  # Green right arrow
+        f"⬅️ <b>{int(txn_info['realCurCoinAmount']):,} {txn_info['coinName']}</b>\n\n"  # Yellow left arrow for coin amount
+        f"👤 <a href='https://example.com/txn/{txn_info['digest']}'>0x{txn_info['digest']}</a>: "
+        # f"{price_variation_str}"  # Display formatted price variation with line break
+        # f"💧 <b>Liquidity:</b> {txn_info['liquidity']}\n"
+        f"🏛️ <b>Market Cap:</b> {txn_info['marketCap']}\n"
         "━━━━━━━━━━━━━━━━━━━━\n"
-        f"<b>TRENDING</b> #{transaction['coin_ranking']} on <a href='https://twitter.com/Trending_Sui'>@Trending_Sui</a>\n\n"
+        f"<b>TRENDING</b> #{1} on <a href='https://twitter.com/Trending_Sui'>@Trending_Sui</a>\n\n"
         "🌐 <a href='https://example.com/dexs'>DexS</a> | 🔍 <a href='https://example.com/wallet'>Sui Wallet Tracker</a> | 🎯 <a href='https://example.com/sniper'>Sui Sniper Bot</a>\n\n"
         "👍 13   🔥 8   ❤️ 7   😂 1\n"  # Simulated reaction counts
     )
 
     # Single-line button at the end
     keyboard = [
-        [InlineKeyboardButton(f"Buy {transaction['coin_name']} on Sui Sniper", url="https://example.com/buy_blub")]
+        [InlineKeyboardButton(f"Buy {txn_info['coinName']} on Sui Sniper", url="https://example.com/buy_blub")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Send message to channel
-    await context.bot.send_message(
+    await bot.send_message(
         chat_id=chat_id,
         text=message,
         parse_mode=ParseMode.HTML,

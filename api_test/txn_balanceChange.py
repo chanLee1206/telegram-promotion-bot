@@ -1,6 +1,7 @@
-import requests
+import aiohttp
+import asyncio
 
-def get_transaction_amounts(transaction_digest):
+async def get_transaction_amounts(transaction_digest):
     url = "https://sui.blockpi.network/v1/rpc/7a161850387357cc5e4c78aaa49a10c9205ffba1"
     headers = {
         "Content-Type": "application/json"
@@ -23,40 +24,39 @@ def get_transaction_amounts(transaction_digest):
         ]
     }
 
-    # Make the POST request
-    response = requests.post(url, headers=headers, json=data)
-    
-    # Check if the response was successful
-    if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
-        return []
+    async with aiohttp.ClientSession() as session:
+        # Make the POST request
+        async with session.post(url, headers=headers, json=data) as response:
+            # Check if the response was successful
+            if response.status != 200:
+                print(f"Error: {response.status} - {await response.text()}")
+                return []
 
-    # Parse response JSON and check if the required data is present
-    result = response.json().get("result")
-    if not result or "balanceChanges" not in result:
-        print("Error: Missing 'balanceChanges' in response.")
-        return []
+            # Parse response JSON and check if the required data is present
+            result = await response.json()
+            if not result or "result" not in result or "balanceChanges" not in result["result"]:
+                print("Error: Missing 'balanceChanges' in response.")
+                return []
 
-    # Process balance changes
-    timestampMs = result['timestampMs']
-    balance_changes = result['balanceChanges']
-    amounts_by_coin = {}
+            # Process balance changes
+            timestampMs = result['result']['timestampMs']
+            balance_changes = result['result']['balanceChanges']
+            transContent = {'timestampMs': timestampMs, "unit_coin": 0, "cur_coin": 0}
 
-    for entry in balance_changes:
-        coin_type = entry['coinType']
-        amount = int(entry['amount'])
+            for entry in balance_changes:
+                coin_type = entry['coinType']
+                amount = int(entry['amount'])
+                if coin_type == '0x2::sui::SUI':
+                    transContent['unit_coin'] += amount
+                else:
+                    transContent['cur_coin'] += amount
+            return transContent
 
-        if coin_type in amounts_by_coin:
-            amounts_by_coin[coin_type] += amount
-        else:
-            amounts_by_coin[coin_type] = amount
+async def main():
+    # Example usage
+    transaction_digest = "9AGukBwsEaTUNgimJViP4ykbThFR49cT98WZBUqUR86z"
+    transaction_content = await get_transaction_amounts(transaction_digest)
+    print(transaction_content)
 
-    # Convert the result into the required array format
-    transaction_amount = [{'coinType': coin_type, 'amount': str(amount)} for coin_type, amount in amounts_by_coin.items()]
-
-    return {'timestampMs': timestampMs,  'transaction_content' : transaction_amount}
-
-# Example usage
-# transaction_digest = "9AGukBwsEaTUNgimJViP4ykbThFR49cT98WZBUqUR86z"
-# transaction_content = get_transaction_amounts(transaction_digest)
-# print(transaction_content)
+if __name__ == "__main__":
+    asyncio.run(main())
