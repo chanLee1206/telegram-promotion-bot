@@ -28,7 +28,7 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
         "\n"
         f"<b>TRENDING</b> #{1} on <a href='https://twitter.com/Trending_Sui'>@Trending_Sui</a>\n\n"
         # "🌐 <a href='https://example.com/dexs'>DexS</a> | 🔍 <a href='https://example.com/wallet'>Sui Wallet Tracker</a> | 🎯 <a href='https://example.com/sniper'>Sui Sniper Bot</a>\n\n"
-        "👍 13   🔥 8   ❤️ 7   😂 1\n"  # Simulated reaction counts
+        # "👍 13   🔥 8   ❤️ 7   😂 1\n"  # Simulated reaction counts
     )
 
     # Single-line button at the end
