@@ -7,14 +7,8 @@ from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 
 # Initialize the application globally
-application = Application.builder().token(BOT_TOKEN).read_timeout(20).write_timeout(20).build()
-LastTxnDigest = ""
 
-# Define the button callback function
-async def button_callback(update, context):
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(text="You are ready to start! Now, please paste your token contract address.")
+LastTxnDigest = ""
 
 async def other_task():
     while True:
@@ -26,6 +20,7 @@ async def get_transaction_data(coin_type):
     txn_info = await getLast_trans_info_of_coin(coin_type)
     
     if 'digest' not in txn_info:
+        print('no digest, not buy or sell')
         return
 
     if LastTxnDigest == txn_info['digest']:
@@ -47,23 +42,34 @@ async def poll_transactions(coin_type, interval=7):
         await get_transaction_data(coin_type)
         await asyncio.sleep(interval)  # Wait for the specified interval
 
+async def run_polling(application):
+    """Runs the polling for the Telegram bot in the event loop."""
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    
+    # Keep running until manually stopped
+    while True:
+        await asyncio.sleep(1)
+
 async def main():
-    application.run_polling()  # Ensure the bot starts running after handlers are set
+    application = Application.builder().token(BOT_TOKEN).read_timeout(20).write_timeout(20).build()
+    # Add handlers for the /start and /help commands
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
+
+    # Start polling for the bot
     coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
     global LastTxnDigest
     LastTxnDigest = ""
-    await asyncio.gather(
-        poll_transactions(coin_type, interval=45),
+    asyncio.create_task(poll_transactions(coin_type, interval=45))
+    
+    await run_polling(application)
+    # await asyncio.gather(
+    #     poll_transactions(coin_type, interval=45),
         # other_task()
-    )
+    # )
 
-# Add handlers for the /start and /help commands
-application.add_handler(CommandHandler("start", start))
-application.add_handler(CommandHandler("help", help_command))
-
-# Add callback query handler for button press
-application.add_handler(CallbackQueryHandler(button_callback, pattern="ready_to_start"))
-
-# Run the bot application in the event loop
 if __name__ == "__main__":
     asyncio.run(main())  # Properly call the main function
+
