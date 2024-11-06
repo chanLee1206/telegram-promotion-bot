@@ -14,7 +14,7 @@ async def other_task():
     while True:
         await asyncio.sleep(10)  # Example delay for other processing
 
-async def get_transaction_data(coin_type):
+async def get_transaction_data(application, coin_type):
     global LastTxnDigest
     print(f"Fetching Last_txn for {coin_type} at {time.strftime('%X')}")
     txn_info = await getLast_trans_info_of_coin(coin_type)
@@ -37,9 +37,9 @@ async def get_transaction_data(coin_type):
 
     await asyncio.sleep(0.1)
 
-async def poll_transactions(coin_type, interval=7):
+async def poll_transactions(application, coin_type, interval=7):
     while True:
-        await get_transaction_data(coin_type)
+        await get_transaction_data(application, coin_type)
         await asyncio.sleep(interval)  # Wait for the specified interval
 
 async def run_polling(application):
@@ -50,7 +50,7 @@ async def run_polling(application):
     
     # Keep running until manually stopped
     while True:
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)
 
 async def main():
     application = Application.builder().token(BOT_TOKEN).read_timeout(20).write_timeout(20).build()
@@ -62,7 +62,7 @@ async def main():
     coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
     global LastTxnDigest
     LastTxnDigest = ""
-    asyncio.create_task(poll_transactions(coin_type, interval=45))
+    asyncio.create_task(poll_transactions(application, coin_type, interval=45))
     
     await run_polling(application)
     # await asyncio.gather(
