@@ -13,7 +13,7 @@ async def get_tx_hashes(coin_type, page_size):
                 response.raise_for_status()  # Raise an error for bad responses
                 result_txns = await response.json()
                 tx_hashes = [{'txHash': tx['txHash'], 'functions': tx.get('functions', [])} for tx in result_txns.get('content', [])]
-                print(tx_hashes)
+                # print(tx_hashes)
                 return tx_hashes
     except Exception as e:
         print(f"Error fetching transaction hashes: {e}")

@@ -7,12 +7,12 @@ from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin  # Correct import
 
 # Initialize the application globally
-application = Application.builder().token(BOT_TOKEN).build()
+# application = Application.builder().token(BOT_TOKEN).build()
+application = Application.builder().token(BOT_TOKEN).read_timeout(20).write_timeout(20).build()
 LastTxnDigest = ""
 
 async def other_task():
     while True:
-        print("Performing other task")
         await asyncio.sleep(10)  # Example delay for other processing
 
 async def get_transaction_data(coin_type):
@@ -20,23 +20,26 @@ async def get_transaction_data(coin_type):
     global LastTxnDigest
     global context
 
-    # Await the asynchronous function to get the actual transaction info
-    txn_info = await getLast_trans_info_of_coin(coin_type)  # Use await here
-
     print(f"Fetching Last_txn for {coin_type} at {time.strftime('%X')}")
-
+    
+    txn_info = await getLast_trans_info_of_coin(coin_type)  # Use await here
+    
     # Ensure txn_info has the expected structure before accessing 'digest'
     if 'digest' not in txn_info:
-        # print("Error: 'digest' not found in transaction info.")
         return  # Handle the case where digest is not available
 
+    
     if LastTxnDigest == txn_info['digest']:
-        print("Continue without new")
+        print("Continue, not new!")
+        return
     else:
         LastTxnDigest = txn_info['digest']
         print(txn_info)  # Print or process the transaction info as needed
 
-    await send_info_board(application.bot, CHAT_ID, txn_info)
+    try:
+        await send_info_board(application.bot, CHAT_ID, txn_info)
+    except Exception as e:
+        print(f"Error sending message: {e}")
 
     await asyncio.sleep(0.1)  # Simulate processing time
 
@@ -51,7 +54,7 @@ async def main():
     global LastTxnDigest 
     LastTxnDigest = ""
     await asyncio.gather(
-        poll_transactions(coin_type, interval=20),  # or listen_to_transactions(coin_type) for WebSocket
+        poll_transactions(coin_type, interval=45),  # or listen_to_transactions(coin_type) for WebSocket
         other_task()
     )
 
