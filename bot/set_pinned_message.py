@@ -11,7 +11,7 @@ async def send_pinned_message():
     
     # Define the inline keyboard with the "Book Trending" button
     keyboard = [
-        [InlineKeyboardButton("Book Trending", url="https://t.me/suiTokenPromote_bot")]
+        [InlineKeyboardButton("✅Book Trending", url="https://t.me/suiTokenPromote_bot")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 

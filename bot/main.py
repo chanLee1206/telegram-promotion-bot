@@ -37,7 +37,10 @@ async def get_transaction_data(application, coin_type):
 
     await asyncio.sleep(0.1)
 
+
+
 async def poll_transactions(application, coin_type, interval=7):
+
     while True:
         await get_transaction_data(application, coin_type)
         await asyncio.sleep(interval)  # Wait for the specified interval
@@ -63,7 +66,8 @@ async def main():
     coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
     global LastTxnDigest
     LastTxnDigest = ""
-    asyncio.create_task(poll_transactions(application, coin_type, interval=45))
+
+    asyncio.create_task(poll_transactions(application, coin_type, interval=60))
     
     await run_polling(application)
 

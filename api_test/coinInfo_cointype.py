@@ -32,13 +32,13 @@ async def fetch_coin_details(coin_type):
                 return None
 
 # Example usage
-""" async def main():
+async def main():
     coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
     details = await fetch_coin_details(coin_type)
     print(details)
 
 # Running the example
 if __name__ == "__main__":
-    asyncio.run(main()) """
+    asyncio.run(main())
 
 

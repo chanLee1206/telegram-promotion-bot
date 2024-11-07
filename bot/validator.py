@@ -13,3 +13,4 @@ def validate_boosting_period(boosting_period) -> bool :
 
 def validate_wallet_address(wallet_address) -> bool :
     return True
+
