@@ -1,0 +1,12 @@
+{
+  "name": "Ancy Peosi",
+  "symbol": "ANCY",
+  "decimals": 6,
+  "logo": "https://api.movepump.com/uploads/266_4adcb9f78e.jpeg",
+  "totalSupply": "10000000000",
+  "packageID": "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508",
+  "coinType": "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY",
+  "creator": "0x465539fb4566a4638c02fd6206abdae0cddc25d4da926fc8bdbbf9d74f59b6be",
+  "createdTime": 1729469613846,
+  "birdeyeLink": "https://birdeye.so/token/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY?chain=sui"
+}

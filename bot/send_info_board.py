@@ -1,37 +1,59 @@
 # send_info_board.py
+import os
 
 import random
 import string
 from datetime import datetime, timedelta
 from telegram.constants import ParseMode
-from telegram.ext import ContextTypes  # Add this import
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+# from telegram import  InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes
 
-def generate_random_transaction():
-    txn_id = ''.join(random.choices(string.ascii_letters + string.digits, k=43))
-    txn_date = (datetime.now() - timedelta(days=random.randint(0, 30))).strftime("%m/%d/%y")
-    txn_type = random.choice(["buy", "sell"])
-    sui_cost = random.randint(10000000000, 500000000000)
-    volume = random.randint(1, 1000)
-    return {
-        "txn_id": txn_id,
-        "txn_date": txn_date,
-        "txn_type": txn_type,
-        "sui_cost": sui_cost,
-        "volume": volume
-    }
+async def send_info_board(bot, chat_id: str, txn_info) -> None:
+    print('channel_board_add')
+    img_cnt = int(txn_info['realUnitCoinAmount']/2)
+    image_particles = "🟢" *  img_cnt  # You can replace this emoji with another if needed
 
-async def send_info_board(context: ContextTypes.DEFAULT_TYPE, chat_id: str) -> None:
-    transaction = generate_random_transaction()
-    
+    # Styled message content with header and updated arrow icons
     message = (
-        f"📊 <b>Transaction Info</b> 📊\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"<b>Transaction ID:</b> {transaction['txn_id']}\n"
-        f"<b>Date:</b> {transaction['txn_date']}\n"
-        f"<b>Type:</b> {transaction['txn_type']}\n"
-        f"<b>SUI Cost:</b> {transaction['sui_cost']}\n"
-        f"<b>Volume:</b> {transaction['volume']}\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
+        # f"<b>Sui Trending</b>\n"  # Simulated green header with a green dot
+        f"<b>${txn_info['coinName']} :  {txn_info['function']}!</b>\n\n"  # Bolded for emphasis
+        f"{image_particles}\n\n"  # Add the image particles row
+        f"➡️ <b>{txn_info['realUnitCoinAmount']:.2f} SUI</b> (${txn_info['realUnitCoinAmount'] * 1.98:.2f})\n"  # Green right arrow
+        f"⬅️ <b>{int(txn_info['realCurCoinAmount']):,} {txn_info['coinName']}</b>\n\n"  # Yellow left arrow for coin amount
+        f"👤 <a href='https://suiscan.xyz/mainnet/tx/{txn_info['digest']}'>0x{txn_info['digest'][:2]}...{txn_info['digest'][-3:]}</a>: New TXN\n"
+        # f"{price_variation_str}"  # Display formatted price variation with line break
+        # f"💧 <b>Liquidity:</b> {txn_info['liquidity']}\n"
+        f"🏛️ <b>Market Cap: $</b> {int(txn_info['marketCap']):,}\n"
+        "\n"
+        f"<b>TRENDING</b> #{1} on <a href='https://twitter.com/Trending_Sui'>@Trending_Sui</a>\n\n"
+        # "🌐 <a href='https://example.com/dexs'>DexS</a> | 🔍 <a href='https://example.com/wallet'>Sui Wallet Tracker</a> | 🎯 <a href='https://example.com/sniper'>Sui Sniper Bot</a>\n\n"
+        # "👍 13   🔥 8   ❤️ 7   😂 1\n"  # Simulated reaction counts
     )
-    
-    await context.bot.send_message(chat_id=chat_id, text=message, parse_mode=ParseMode.HTML)
+
+    # Single-line button at the end
+    keyboard = [
+        [InlineKeyboardButton(f"Buy {txn_info['coinName']} on Sui Sniper", url="https://example.com/buy_blub")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+        # Path to your image file
+    image_path = os.path.join(os.path.dirname(__file__), "../assets/ancy_expand.png")
+
+    # Send image with caption as message content
+    await bot.send_photo(
+        chat_id=chat_id,
+        photo=open(image_path, 'rb'),
+        caption=message,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
+    )
+
+    # Send message to channel
+    # await bot.send_message(
+    #     chat_id=chat_id,
+    #     text=message,
+    #     parse_mode=ParseMode.HTML,
+    #     reply_markup=reply_markup
+    # )
+
