@@ -1,6 +1,7 @@
 from api_test.txns_cointype import get_tx_hashes 
 from api_test.coinInfo_cointype import fetch_coin_details 
-from api_test.txn_balanceChange import get_transaction_amounts
+# from api_test.txn_balanceChange import get_transaction_amounts
+from api_test.txnInfo_digest import get_transaction_amounts
 
 from datetime import datetime, timezone
 import asyncio
@@ -78,10 +79,10 @@ async def getLast_trans_info_of_coin(coin_type):
     # pdb.set_trace()
     return trans_view_format(combined_info)
 
-""" async def main():
+async def main():
     coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
     TransInfo = await getLast_trans_info_of_coin(coin_type)
     print("\n Here coin info type:", TransInfo)
 
 if __name__ == "__main__":
-    asyncio.run(main()) """
+    asyncio.run(main())
