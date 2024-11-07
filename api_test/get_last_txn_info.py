@@ -32,14 +32,11 @@ def trans_view_format(combined_raw_info):
 
 async def getLast_trans_info_of_coin(coin_type):
     # pdb.set_trace()
-    # global LastTxnDigest
     tx_hashes = await get_tx_hashes(coin_type, 1)
 
     if not tx_hashes or not isinstance(tx_hashes, list) or not tx_hashes[0]:
-        # print(f"Error: No transaction hashes found for {coin_type}.")
         return {"function": 'none'}  # Handle no hashes scenario
 
-    # Check if the functions field is None or not present
     functions = tx_hashes[0].get('functions')  # Use get to avoid KeyError
 
     if functions is None or len(functions) == 0:
@@ -48,19 +45,13 @@ async def getLast_trans_info_of_coin(coin_type):
 
     if functions[0] not in ['buy', 'sell']:
         return {"function": 'etc'}
-    
-    # if (tx_hashes[0]['txHash'] == LastTxnDigest) :
-    #     print('aleady detected TXN')
-    #     return {"function": 'none'}
-    
+
     # custom_txHash = 'Bc3vPfA5D4ZGUSsXxdXEGewqpXtdJGg6JS3ZS5XQLzmB'
     coin_info = await fetch_coin_details(coin_type)
-    # await asyncio.sleep(1)  # Use asyncio.sleep instead of time.sleep
     if coin_info is None:        
         return {"function": 'none'}
 
     transaction_info = await get_transaction_amounts(tx_hashes[0]["txHash"])
-    # transaction_info = await get_transaction_amounts(custom_txHash)
     
     combined_info = {
         "txHash": tx_hashes[0]['txHash'],
@@ -71,7 +62,6 @@ async def getLast_trans_info_of_coin(coin_type):
         "price": coin_info['price'],
         "decimals": coin_info['decimals'],
         "function": tx_hashes[0]['functions'][0],  # Assuming we want the first function
-        # "function": 'buy',  # Assuming we want the first function
         "marketCap": coin_info['marketCap'],
         "unitCoinAmount": abs(transaction_info['unit_coin']),  # Adding transInfo list as it is
         "curCoinAmount": abs(transaction_info['cur_coin'])  # Adding transInfo list as it is

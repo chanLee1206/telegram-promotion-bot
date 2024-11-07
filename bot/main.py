@@ -28,7 +28,6 @@ async def get_transaction_data(coin_type):
     if 'digest' not in txn_info:
         return  # Handle the case where digest is not available
 
-    
     if LastTxnDigest == txn_info['digest']:
         print("Continue, not new!")
         return
@@ -44,7 +43,7 @@ async def get_transaction_data(coin_type):
     await asyncio.sleep(0.1)  # Simulate processing time
 
 
-async def poll_transactions(coin_type, interval=7):
+async def poll_transactions(coin_type, interval=10):
     while True:
         await get_transaction_data(coin_type)
         await asyncio.sleep(interval)  # Wait for the specified interval
@@ -54,14 +53,12 @@ async def main():
     global LastTxnDigest 
     LastTxnDigest = ""
     await asyncio.gather(
-        poll_transactions(coin_type, interval=45),  # or listen_to_transactions(coin_type) for WebSocket
+        poll_transactions(coin_type, interval=60),  # or listen_to_transactions(coin_type) for WebSocket
         other_task()
     )
 
-# Add handlers for the /start and /help commands
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("help", help_command))
 
-# Start the main asynchronous function
 if __name__ == "__main__":
     asyncio.run(main())
