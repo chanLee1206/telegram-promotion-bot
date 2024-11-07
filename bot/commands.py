@@ -6,7 +6,6 @@ from bot.validator import validate_token_id, validate_boosting_period, validate_
 # Store the procedure handlers globally for later removal
 procedure_handler = None
 
-# Step 1: Start command to initiate the procedure
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     bot = context.bot
     
@@ -35,13 +34,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=reply_markup
     )
 
-# Step 2: Handle "/help" command
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         'I can respond to:\n/start - Start the bot\n/help - Show this help message'
     )
 
-# Step 3: Handle the "I'm ready to trend" button click
 async def btn_trendStart_handler(update: Update, context: CallbackContext) -> None:
     global procedure_handler  # Declare global to modify the handler
 
@@ -55,7 +52,6 @@ async def btn_trendStart_handler(update: Update, context: CallbackContext) -> No
     procedure_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, get_token_id)
     context.application.add_handler(procedure_handler)
 
-# Step 4: Capture the token ID and validate it
 async def get_token_id(update: Update, context: CallbackContext) -> None:
     global procedure_handler  # Declare global to modify the handler
 
@@ -80,7 +76,6 @@ async def get_token_id(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text(f"❌ Invalid Token ID: {token_id}. Type 'exit' to cancel and restart.")
         print(f"Invalid Token ID: {token_id}")
 
-# Step 5: Capture the boosting period and validate it
 async def get_boosting_period(update: Update, context: CallbackContext) -> None:
     global procedure_handler  # Declare global to modify the handler
 
@@ -105,7 +100,6 @@ async def get_boosting_period(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text(f"❌ Invalid boosting period: {boosting_period}. Type 'exit' to cancel and restart.")
         print(f"Invalid boosting period: {boosting_period}")
 
-# Step 6: Capture the wallet address and validate it
 async def get_wallet_address(update: Update, context: CallbackContext) -> None:
     global procedure_handler  # Declare global to modify the handler
 
@@ -118,17 +112,58 @@ async def get_wallet_address(update: Update, context: CallbackContext) -> None:
 
     if validate_wallet_address(wallet_address):
         context.user_data["wallet_address"] = wallet_address
-        await update.message.reply_text(f"Wallet address received: {wallet_address}. Processing your request...")
+        await update.message.reply_text(f"Wallet address received: {wallet_address}. Now, let's confirm your details.")
 
         # Remove the wallet address handler after success
         context.application.remove_handler(procedure_handler)
         
-        # Now all parameters are gathered, you can proceed with the actual trending process
-        print(f"User provided wallet address: {wallet_address}")
-        # Add any logic to proceed with the actual boosting here (e.g., processing payment, etc.)
+        # Send summary and ask for confirmation
+        await confirm_details(update, context)
     else:
         await update.message.reply_text(f"❌ Invalid wallet address: {wallet_address}. Type 'exit' to cancel and restart.")
         print(f"Invalid wallet address: {wallet_address}")
+
+async def confirm_details(update: Update, context: CallbackContext) -> None:
+    # Retrieve all the information collected
+    token_id = context.user_data.get("token_id", "Not provided")
+    boosting_period = context.user_data.get("boosting_period", "Not provided")
+    wallet_address = context.user_data.get("wallet_address", "Not provided")
+
+    # Summarize the information and ask for confirmation
+    confirmation_text = (
+        "Please confirm the following details:\n\n"
+        f"Token ID: {token_id}\n"
+        f"Boosting Period: {boosting_period} minutes\n"
+        f"Wallet Address: {wallet_address}\n\n"
+        "Type 'ok' to confirm or 'exit' to cancel and restart."
+    )
+
+    # Ask for confirmation
+    await update.message.reply_text(confirmation_text)
+
+    # Register handler for confirmation input
+    global procedure_handler
+    procedure_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, process_confirmation)
+    context.application.add_handler(procedure_handler)
+
+async def process_confirmation(update: Update, context: CallbackContext) -> None:
+    user_input = update.message.text.lower()
+
+    # If user confirms with 'OK'
+    if user_input == 'ok':
+        # Proceed with the next action (e.g., start trending process)
+        await update.message.reply_text("✅ Your details are confirmed. Processing your request...")
+        print("User confirmed all details. Proceeding with the trending process.")
+
+        # Here you can call a function to process the user's request, such as starting the trending
+        # For example: await start_trending(context.user_data)
+    elif user_input == 'exit':
+        # Reset to start if 'exit' is typed
+        await reset_to_start(update, context)
+    else:
+        # Handle invalid confirmation
+        await update.message.reply_text("❌ Invalid input. Type 'OK' to confirm or 'exit' to cancel and restart.")
+        print(f"Invalid confirmation input: {user_input}")
 
 # Reset to the start state when 'exit' is typed
 async def reset_to_start(update: Update, context: CallbackContext) -> None:
