@@ -1,6 +1,6 @@
 #commands.py
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, CallbackContext
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # The bot instance is already available via context
@@ -35,3 +35,15 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(
         'I can respond to:\n/start - Start the bot\n/help - Show this help message'
     )
+
+# Define a callback function to handle the button click
+async def button_callback(update: Update, context: CallbackContext) -> None:
+    # Acknowledge the button click and respond with the new message
+    query = update.callback_query
+    await query.answer()  # Required to stop the "loading" circle
+
+    # Send the reply to prompt for token contract input
+    # await query.edit_message_text(text="Select token to boost trending")
+    await query.message.reply_text(text = "Select token to boost trending")
+
+

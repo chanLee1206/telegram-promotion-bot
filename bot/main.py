@@ -2,7 +2,7 @@ import asyncio
 import time
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler
 from bot.config import BOT_TOKEN, CHAT_ID
-from bot.commands import start, help_command
+from bot.commands import start, help_command, button_callback
 from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 
@@ -57,6 +57,7 @@ async def main():
     # Add handlers for the /start and /help commands
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CallbackQueryHandler(button_callback, pattern="ready_to_start"))
 
     # Start polling for the bot
     coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
@@ -65,11 +66,7 @@ async def main():
     asyncio.create_task(poll_transactions(application, coin_type, interval=45))
     
     await run_polling(application)
-    # await asyncio.gather(
-    #     poll_transactions(coin_type, interval=45),
-        # other_task()
-    # )
-
+        
 if __name__ == "__main__":
     asyncio.run(main())  # Properly call the main function
 
