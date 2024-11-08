@@ -30,27 +30,27 @@ def regist_lastTxn(txn_info):
    
     print('regist-', last_txn_arr)
 
-async def track_coin_post(application, coin_type):
+async def track_coin_post(application, track_coin):
     global last_txn_arr
 
-    print(f"Fetching Last_txn for {coin_type} at {time.strftime('%X')}")
-    print(last_txn_arr)
+    print(f"Fetching Last_txn for {track_coin} at {time.strftime('%X')}")
+    # print(last_txn_arr)
 
-    txn_info = await getLast_trans_info_of_coin(coin_type)
+    txn_info = await getLast_trans_info_of_coin(track_coin['coinType'], last_txn_arr[track_coin['symbol']])
     
     print(txn_info)
     if 'digest' not in txn_info:
-        print('no digest, not buy or sell')
+        print('old digest, or not formal transaction')
         return False
     # if LastTxnDigest == txn_info['digest']:
-    print('lastDigest-', txn_info['coinSymbol'], last_txn_arr[txn_info['coinSymbol']])
+    # print('lastDigest-', txn_info['coinSymbol'], last_txn_arr[txn_info['coinSymbol']])
 
     if last_txn_arr[txn_info['coinSymbol']] == txn_info['digest']:
         print("Continue, not new!")
         return False
     else:
         LastTxnDigest = txn_info['digest']
-        print(txn_info)
+        # print(txn_info)
         await send_info_board(application.bot, CHAT_ID, txn_info)
         regist_lastTxn(txn_info)
 
@@ -66,12 +66,12 @@ async def poll_transactions(application, interval=7):
     while True:
         curCoin = global_token_arr[cur_coin_idx]
 
-        postFlag = await track_coin_post(application, curCoin['coinType'])
+        postFlag = await track_coin_post(application, curCoin)
 
         await asyncio.sleep(interval) 
         
-        # cur_coin_idx = (cur_coin_idx + 1) % len(global_token_arr)
-        cur_coin_idx = 0
+        cur_coin_idx = (cur_coin_idx + 1) % len(global_token_arr)
+        # cur_coin_idx = 0
 
 
 async def run_polling(application):

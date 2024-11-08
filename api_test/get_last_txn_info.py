@@ -32,7 +32,7 @@ def trans_view_format(combined_raw_info):
     }
     return trans_view_info
 
-async def getLast_trans_info_of_coin(coin_type):
+async def getLast_trans_info_of_coin(coin_type, lastTxn):
     # pdb.set_trace()
     tx_hashes = await get_tx_hashes(coin_type, 1)
     
@@ -45,6 +45,9 @@ async def getLast_trans_info_of_coin(coin_type):
         print(f"No functions found for transaction hash: {tx_hashes[0]['txHash']}")
         return {"function": 'none'}  # Handle the absence of function data
 
+    if (tx_hashes[0]['txHash'] == lastTxn) :
+        print('not new Txn, quit other apis')
+        return {"function": 'none'}  # Handle the absence of function data
     # if functions[0] not in ['buy', 'sell', 'swap']:
     #     return {"function": 'etc'}
 
