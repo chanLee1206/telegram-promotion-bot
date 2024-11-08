@@ -1,7 +1,8 @@
 import pymysql
 
+
 # Define a global variable to hold token data
-global global_token_arr
+from globals import global_token_arr
 
 # Database connection details
 db_config = {
@@ -20,12 +21,15 @@ def load_global_token_arr():
         
         with connection.cursor() as cursor:
             # Fetch data from tb_tokens table
-            query = "SELECT nickSymbol, name, symbol, decimals, coinType, supply FROM tb_tokens"
+            query = "SELECT symbol, name, decimals, coinType, supply FROM tb_tokens"
             cursor.execute(query)
+            results = cursor.fetchall()
+            column_names = [desc[0] for desc in cursor.description]
             
-            # Load the data into the global array
-            global_token_arr = cursor.fetchall()
-            
+            # Map each row to a dictionary using the column names
+            global_token_arr.clear()
+            global_token_arr.extend([dict(zip(column_names, row)) for row in results])
+          
             print("Data loaded successfully:", global_token_arr)
 
         # Close the connection
@@ -36,4 +40,3 @@ def load_global_token_arr():
     except pymysql.MySQLError as err:
         print(f"Error: {err}")
         return None
-

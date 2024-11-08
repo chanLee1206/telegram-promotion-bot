@@ -43,7 +43,7 @@ async def getLast_trans_info_of_coin(coin_type):
         print(f"No functions found for transaction hash: {tx_hashes[0]['txHash']}")
         return {"function": 'none'}  # Handle the absence of function data
 
-    if functions[0] not in ['buy', 'sell']:
+    if functions[0] not in ['buy', 'sell', 'swap']:
         return {"function": 'etc'}
     await asyncio.sleep(10)  # Wait for the specified interval
 

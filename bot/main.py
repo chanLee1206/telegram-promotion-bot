@@ -7,11 +7,11 @@ from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 
 from db.getMemeTokens import load_global_token_arr
+from globals import global_token_arr
 
 # Initialize the application globally
 
 LastTxnDigest = ""
-global_token_arr = []
 cur_coin_idx = 0 
 
 curCoinType = ""
@@ -45,17 +45,17 @@ async def get_transaction_data(application, coin_type):
 
 
 async def poll_transactions(application, interval=7):
-    global global_token_arr
+    # global global_token_arr
     global cur_coin_idx
 
-    print(global_token_arr)
+    # print(global_token_arr)
     while True:
-        coinType = global_token_arr[cur_coin_idx]
+        curCoin = global_token_arr[cur_coin_idx]
 
-        await get_transaction_data(application, coinType)
+        await get_transaction_data(application, curCoin['coinType'])
         await asyncio.sleep(interval)  # Wait for the specified interval
         
-        index = (index + 1) % len(global_token_arr)
+        cur_coin_idx = (cur_coin_idx + 1) % len(global_token_arr)
 
 
 async def run_polling(application):
@@ -69,19 +69,18 @@ async def run_polling(application):
         await asyncio.sleep(0.1)
 
 async def main():
-    global cur_coin_idx, global_token_arr
+    global cur_coin_idx
 
     cur_coin_idx = 0
-
-    # Ensure global_token_arr is loaded before starting polling
-    global_token_arr = load_global_token_arr()
-
-    # Check if global_token_arr is populated before proceeding
-    if not global_token_arr:
+    # print(global_token_arr)
+    token_arr = load_global_token_arr()
+    
+    # print("\n",len(global_token_arr), global_token_arr)
+    # return
+    
+    if not token_arr:
         print("Error: global_token_arr is empty after loading.")
         return
-
-    print(f"Loaded tokens: {global_token_arr}")
 
     # Now create the application instance
     application = Application.builder().token(BOT_TOKEN).read_timeout(20).write_timeout(20).build()
@@ -96,8 +95,8 @@ async def main():
     LastTxnDigest = ""
 
     # Start the polling for transactions
-    asyncio.create_task(poll_transactions(application, interval=60))
-    print (global_token_arr)
+    asyncio.create_task(poll_transactions(application, interval=40))
+
     await run_polling(application)
 
 

@@ -38,22 +38,22 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
     reply_markup = InlineKeyboardMarkup(keyboard)
 
         # Path to your image file
-    image_path = os.path.join(os.path.dirname(__file__), "../assets/ancy_expand.png")
+    # image_path = os.path.join(os.path.dirname(__file__), "../assets/ancy_expand.png")
 
-    # Send image with caption as message content
-    await bot.send_photo(
-        chat_id=chat_id,
-        photo=open(image_path, 'rb'),
-        caption=message,
-        parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup
-    )
-
-    # Send message to channel
-    # await bot.send_message(
+    # # Send image with caption as message content
+    # await bot.send_photo(
     #     chat_id=chat_id,
-    #     text=message,
+    #     photo=open(image_path, 'rb'),
+    #     caption=message,
     #     parse_mode=ParseMode.HTML,
     #     reply_markup=reply_markup
     # )
+
+    # Send message to channel
+    await bot.send_message(
+        chat_id=chat_id,
+        text=message,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
+    )
 
