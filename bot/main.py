@@ -6,7 +6,9 @@ from bot.commands import start, help_command, btn_trendStart_handler
 from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 
-from db.db import load_global_token_arr
+from db.db import initialize_connection, close_connection, load_global_token_arr
+import atexit
+
 from globals import global_token_arr
 
 # Initialize the application globally
@@ -72,7 +74,10 @@ async def main():
     global cur_coin_idx
 
     cur_coin_idx = 0
-    # print(global_token_arr)
+
+    initialize_connection()
+    atexit.register(close_connection)
+
     load_global_token_arr()
     
     # print("\n",len(global_token_arr), global_token_arr)
