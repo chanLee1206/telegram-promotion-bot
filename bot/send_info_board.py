@@ -12,7 +12,7 @@ from telegram.ext import ContextTypes
 
 async def send_info_board(bot, chat_id: str, txn_info) -> None:
     print('channel_board_add')
-    img_cnt = int(log10(abs(txn_info['realUnitCoinAmount']) + 10) * 10)
+    img_cnt = int(log10(abs(txn_info['realUnitCoinAmount']) + 1) * 10) + 1
     image_particles = "🟢" *  img_cnt  # You can replace this emoji with another if needed
 
     real_unit_icon = "➡️" if txn_info['realUnitCoinAmount'] >= 0 else "⬅️"

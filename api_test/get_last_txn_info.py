@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import asyncio
 
 import pdb
+# from globals import global_last_txns
 
 LastTxnDigest = ""
 
@@ -47,17 +48,17 @@ async def getLast_trans_info_of_coin(coin_type):
     # if functions[0] not in ['buy', 'sell', 'swap']:
     #     return {"function": 'etc'}
 
-    await asyncio.sleep(10)  # Wait for the specified interval
+    await asyncio.sleep(5)  # Wait for the specified interval
 
     # custom_txHash = 'Bc3vPfA5D4ZGUSsXxdXEGewqpXtdJGg6JS3ZS5XQLzmB'
     coin_info = await fetch_coin_details(coin_type)
-    await asyncio.sleep(10)
+    await asyncio.sleep(5)
 
     if coin_info is None:        
         return {"function": 'none'}
 
     transaction_info = await get_transaction_amounts(tx_hashes[0]["txHash"])
-    await asyncio.sleep(3)
+    await asyncio.sleep(5)
 
     combined_info = {
         "txHash": tx_hashes[0]['txHash'],

@@ -7,13 +7,14 @@ from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 
 from db.db import initialize_connection, close_connection, load_global_token_arr
+from db.collet_last_txns import init_last_txns
 import atexit
 
 from globals import global_token_arr
 
 # Initialize the application globally
 
-LastTxnDigest = ""
+last_txn_arr = []
 cur_coin_idx = 0 
 
 curCoinType = ""
@@ -22,30 +23,39 @@ async def other_task():
     while True:
         await asyncio.sleep(10)  # Example delay for other processing
 
-async def get_transaction_data(application, coin_type):
-    global LastTxnDigest
-    print(f"Fetching Last_txn for {coin_type} at {time.strftime('%X')}")
+def regist_lastTxn(txn_info):
+    global last_txn_arr
     
+    last_txn_arr[txn_info['coinSymbol']] = txn_info['digest']
+   
+    print('regist-', last_txn_arr)
+
+async def track_coin_post(application, coin_type):
+    global last_txn_arr
+
+    print(f"Fetching Last_txn for {coin_type} at {time.strftime('%X')}")
+    print(last_txn_arr)
+
     txn_info = await getLast_trans_info_of_coin(coin_type)
     
+    print(txn_info)
     if 'digest' not in txn_info:
         print('no digest, not buy or sell')
-        return
+        return False
+    # if LastTxnDigest == txn_info['digest']:
+    print('lastDigest-', txn_info['coinSymbol'], last_txn_arr[txn_info['coinSymbol']])
 
-    if LastTxnDigest == txn_info['digest']:
+    if last_txn_arr[txn_info['coinSymbol']] == txn_info['digest']:
         print("Continue, not new!")
-        return
+        return False
     else:
         LastTxnDigest = txn_info['digest']
         print(txn_info)
-
-    try:
         await send_info_board(application.bot, CHAT_ID, txn_info)
-    except Exception as e:
-        print(f"Error sending message: {e}")
-    
-    await asyncio.sleep(0.1)
+        regist_lastTxn(txn_info)
 
+        return True
+    
 
 
 async def poll_transactions(application, interval=7):
@@ -56,10 +66,12 @@ async def poll_transactions(application, interval=7):
     while True:
         curCoin = global_token_arr[cur_coin_idx]
 
-        await get_transaction_data(application, curCoin['coinType'])
-        await asyncio.sleep(interval)  # Wait for the specified interval
+        postFlag = await track_coin_post(application, curCoin['coinType'])
+
+        await asyncio.sleep(interval) 
         
-        cur_coin_idx = (cur_coin_idx + 1) % len(global_token_arr)
+        # cur_coin_idx = (cur_coin_idx + 1) % len(global_token_arr)
+        cur_coin_idx = 0
 
 
 async def run_polling(application):
@@ -73,7 +85,7 @@ async def run_polling(application):
         await asyncio.sleep(0.1)
 
 async def main():
-    global cur_coin_idx
+    global cur_coin_idx , last_txn_arr
 
     cur_coin_idx = 0
 
@@ -81,10 +93,10 @@ async def main():
     atexit.register(close_connection)
 
     load_global_token_arr()
-    
-    # print("\n",len(global_token_arr), global_token_arr)
+    last_txn_arr = init_last_txns(global_token_arr)
+    print("Initialized last_txn_arr:", last_txn_arr)  # Debugging line
+
     # return
-    
     if not global_token_arr:
         print("Error: global_token_arr is empty after loading.")
         return
@@ -102,7 +114,7 @@ async def main():
     LastTxnDigest = ""
 
     # Start the polling for transactions
-    asyncio.create_task(poll_transactions(application, interval=40))
+    asyncio.create_task(poll_transactions(application, interval=30))
 
     await run_polling(application)
 
