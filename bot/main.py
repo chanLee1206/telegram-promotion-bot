@@ -6,7 +6,7 @@ from bot.commands import start, help_command, btn_trendStart_handler
 from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 
-from db.getMemeTokens import load_global_token_arr
+from db.db import load_global_token_arr
 from globals import global_token_arr
 
 # Initialize the application globally
@@ -73,12 +73,12 @@ async def main():
 
     cur_coin_idx = 0
     # print(global_token_arr)
-    token_arr = load_global_token_arr()
+    load_global_token_arr()
     
     # print("\n",len(global_token_arr), global_token_arr)
     # return
     
-    if not token_arr:
+    if not global_token_arr:
         print("Error: global_token_arr is empty after loading.")
         return
 
