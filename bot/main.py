@@ -25,6 +25,7 @@ async def other_task():
 async def get_transaction_data(application, coin_type):
     global LastTxnDigest
     print(f"Fetching Last_txn for {coin_type} at {time.strftime('%X')}")
+    
     txn_info = await getLast_trans_info_of_coin(coin_type)
     
     if 'digest' not in txn_info:
@@ -42,6 +43,7 @@ async def get_transaction_data(application, coin_type):
         await send_info_board(application.bot, CHAT_ID, txn_info)
     except Exception as e:
         print(f"Error sending message: {e}")
+    
     await asyncio.sleep(0.1)
 
 

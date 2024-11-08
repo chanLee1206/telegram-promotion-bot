@@ -20,6 +20,7 @@ def trans_view_format(combined_raw_info):
         "digest": combined_raw_info["txHash"],
         "time": formatted_time,
         "coinName": combined_raw_info["coinName"],
+        "coinSymbol": combined_raw_info["coinSymbol"],
         "coinType": combined_raw_info["coinType"],
         "price": combined_raw_info["price"],
         "decimals": combined_raw_info["decimals"],
@@ -43,8 +44,9 @@ async def getLast_trans_info_of_coin(coin_type):
         print(f"No functions found for transaction hash: {tx_hashes[0]['txHash']}")
         return {"function": 'none'}  # Handle the absence of function data
 
-    if functions[0] not in ['buy', 'sell', 'swap']:
-        return {"function": 'etc'}
+    # if functions[0] not in ['buy', 'sell', 'swap']:
+    #     return {"function": 'etc'}
+
     await asyncio.sleep(10)  # Wait for the specified interval
 
     # custom_txHash = 'Bc3vPfA5D4ZGUSsXxdXEGewqpXtdJGg6JS3ZS5XQLzmB'
@@ -61,14 +63,17 @@ async def getLast_trans_info_of_coin(coin_type):
         "txHash": tx_hashes[0]['txHash'],
         # 'txHash' : 'Bc3vPfA5D4ZGUSsXxdXEGewqpXtdJGg6JS3ZS5XQLzmB',
         "timestampMs": transaction_info['timestampMs'],
+        "coinSymbol": coin_info['symbol'],
         "coinName": coin_info['name'],
         "coinType": coin_info['coinType'],
         "price": coin_info['price'],
         "decimals": coin_info['decimals'],
         "function": tx_hashes[0]['functions'][0],  # Assuming we want the first function
         "marketCap": coin_info['marketCap'],
-        "unitCoinAmount": abs(transaction_info['unit_coin']),  # Adding transInfo list as it is
-        "curCoinAmount": abs(transaction_info['cur_coin'])  # Adding transInfo list as it is
+        # "unitCoinAmount": abs(transaction_info['unit_coin']),  # Adding transInfo list as it is
+        # "curCoinAmount": abs(transaction_info['cur_coin'])  # Adding transInfo list as it is
+        "unitCoinAmount": transaction_info['unit_coin'],  # Adding transInfo list as it is
+        "curCoinAmount": transaction_info['cur_coin']  # Adding transInfo list as it is
     }
     # pdb.set_trace()
     return trans_view_format(combined_info)
