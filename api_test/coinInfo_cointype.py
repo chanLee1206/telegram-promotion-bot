@@ -33,7 +33,8 @@ async def fetch_coin_details(coin_type):
 
 # Example usage
 async def main():
-    coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
+    # coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
+    coin_type = "0x82f7064c75c9b0533030f77715225ab438a359071dadfa316ef0b4cc8a184c8e::bubl::BUBL"
     details = await fetch_coin_details(coin_type)
     print(details)
 

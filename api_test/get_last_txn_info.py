@@ -33,7 +33,7 @@ def trans_view_format(combined_raw_info):
 async def getLast_trans_info_of_coin(coin_type):
     # pdb.set_trace()
     tx_hashes = await get_tx_hashes(coin_type, 1)
-
+    
     if not tx_hashes or not isinstance(tx_hashes, list) or not tx_hashes[0]:
         return {"function": 'none'}  # Handle no hashes scenario
 
@@ -45,14 +45,18 @@ async def getLast_trans_info_of_coin(coin_type):
 
     if functions[0] not in ['buy', 'sell']:
         return {"function": 'etc'}
+    await asyncio.sleep(10)  # Wait for the specified interval
 
     # custom_txHash = 'Bc3vPfA5D4ZGUSsXxdXEGewqpXtdJGg6JS3ZS5XQLzmB'
     coin_info = await fetch_coin_details(coin_type)
+    await asyncio.sleep(10)
+
     if coin_info is None:        
         return {"function": 'none'}
 
     transaction_info = await get_transaction_amounts(tx_hashes[0]["txHash"])
-    
+    await asyncio.sleep(3)
+
     combined_info = {
         "txHash": tx_hashes[0]['txHash'],
         # 'txHash' : 'Bc3vPfA5D4ZGUSsXxdXEGewqpXtdJGg6JS3ZS5XQLzmB',

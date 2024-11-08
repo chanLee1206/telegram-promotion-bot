@@ -34,7 +34,6 @@ async def get_transaction_data(application, coin_type):
         await send_info_board(application.bot, CHAT_ID, txn_info)
     except Exception as e:
         print(f"Error sending message: {e}")
-
     await asyncio.sleep(0.1)
 
 
