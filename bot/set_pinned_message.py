@@ -10,8 +10,9 @@ async def send_pinned_message():
     message_text = "Welcome! Get started by booking your trending slot below. I'll list trending ranking here."
     
     # Define the inline keyboard with the "Book Trending" button
+    # Modify the URL to automatically trigger /start
     keyboard = [
-        [InlineKeyboardButton("✅Book Trending", url="https://t.me/suiTokenPromote_bot")]
+        [InlineKeyboardButton("✅Book Trending", url="https://t.me/suiTokenPromote_bot?start=1")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
