@@ -5,7 +5,7 @@ import time
 from bot.validator import validate_coinType, validate_boosting_period, validate_wallet_address
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Application, ContextTypes, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, ContextTypes, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext, ApplicationBuilder
 from bot.config import BOT_TOKEN, CHAT_ID
 
 
@@ -96,6 +96,17 @@ async def run_polling(application):
     while True:
         await asyncio.sleep(0.1)
 
+async def delete_last_message(update: Update, context: CallbackContext):
+    print('here delete last message', update.message.text)
+    # Get the chat ID and message ID of the user's last message
+    chat_id = update.effective_chat.id
+    message_id = update.message.message_id
+    
+    # Delete the message
+    try:
+        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+    except Exception as e:
+        print(f"Failed to delete message: {e}")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -148,6 +159,8 @@ async def handle_startTrending(update: Update, context: CallbackContext) -> None
         text=f"❔ Send me the token's Contract Address or Pair Address or the Launchpad/Presale Url: \n\n Supported Chains: BASE, BSC, ETH, MANTA, POL, SOL, SUI, TRX"
     )
 
+
+
 async def handle_coinConfirmation(update: Update, context: CallbackContext) -> None:
     global front_msg_id, front_chat_id
 
@@ -155,22 +168,13 @@ async def handle_coinConfirmation(update: Update, context: CallbackContext) -> N
     
     reply_keyboard = [
         [
-            InlineKeyboardButton("❌ Cancel", callback_data="cancel"),
-            InlineKeyboardButton("✅ Confirm", callback_data="confirm_purchase"),
+            InlineKeyboardButton("❌ Close", callback_data="close"),
+            InlineKeyboardButton("✅ Confirm", callback_data="confirm"),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(reply_keyboard)
     await context.bot.edit_message_text(chat_id=front_chat_id, message_id=front_msg_id, text=text, parse_mode="HTML", reply_markup=reply_markup)
     
-    # await context.bot.edit_message_text(
-    #     chat_id=front_chat_id,
-    #     message_id=front_msg_id,
-    #     text=f"Selected Token: \n\n CA : \n {context.user_data['coinType']}"
-    # )
-
-
-    # Register the handler for token ID input
-
 async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     input_text = update.message.text
     print('inputed Text', input_text)
@@ -184,6 +188,8 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         if coinValidating['val'] : 
             user_config['curInput'] = "cointype_confirmation"
             context.user_data['coinType'] = input_text
+            
+            await delete_last_message(update, context)
             await handle_coinConfirmation(update, context)
             
             # context.user_data['coinType'] = input_text.strip()
@@ -191,36 +197,28 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     elif user_config['curInput'] == "cointype":
         a =5
         
-    # if val_response['val']:
-    #     context.user_data["coinType"] = coinType
-    #     await update.message.reply_text(f"Token ID received: {coinType}. Now, select the boosting period:")
-        
-    #     # Remove the token handler and proceed to the next input for boosting period
-    #     context.application.remove_handler(procedure_handler)
-        
-    #     # Display the boosting period options with buttons
-    #     await send_trending_boost_options(update, context)
-
-    #     # Register handler for boosting period input
-    #     # procedure_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, get_boosting_period)
-    #     # context.application.add_handler(procedure_handler)
-    # else:
-    #     await update.message.reply_text(f"❌ {val_response['text']}. Type 'exit' to cancel and restart.")
-    #     print(f"Invalid Token ID: {coinType}")
-        
-        
-        
-    # if input_text == "ok" and user_id not in user_config:
-    #     user_config[user_id] = "ok"
-    #     user_data[user_id] = {"first": input_text}
-    #     await update.message.reply_text(text="success")
-    # if input_text == "yes" and user_id in user_config:
-    #     text = (
-    #         f"first text: {user_data[user_id]['first']}\n"
-    #         f"second text: {input_text}"
-    #     )
-    #     await update.message.reply_text(text=text)
-
+async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+  query = update.callback_query
+  user_id = query.from_user.id
+  await query.answer()
+  print("here ROUTE!--------------------")
+  if query.data == "support":
+    text = (
+      f"Support Account: @Boso098\n"
+      f"Our FAQ Channel: @Dgitalworld\n"
+    )
+    await query.message.reply_text(text=text)
+  if query.data == "balance_check":
+    text = (
+      f"🎉Prepaids Stock Bot— Checker\n\n"
+      f"Reply to this message with the card details in the format:\n"
+      f"<code>cc:mm:yy:cvv</code> | e.g., <code>1234567890123456:01:24:123</code>\n\n"
+      f"<i>Checks are charged at</i> <code>US$0.03</code> <i>per successful check.</i>"
+    )
+    await query.message.reply_text(text=text, parse_mode="HTML")
+  if query.data == "close":
+    await query.message.delete()
+      
 async def main():
     global cur_coin_idx , last_txn_arr
     cur_coin_idx = 0
@@ -244,6 +242,10 @@ async def main():
     
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, msgHandler))
     application.add_handler(CallbackQueryHandler(handle_startTrending, pattern="startTrending"))
+    application.add_handler(CallbackQueryHandler(
+        route, 
+        pattern="^(close|support|balance_check|help|profile|listings|back_to_main|toggle_stock_notification|withdraw_lltc|deposit_lltc|deposit|withdraw|addone|back_to_profile|view_card_history|transfer_balance|get_vendor_access|get_relist_access)$")
+    )
 
     # Start the polling for transactions
     asyncio.create_task(poll_transactions(application, interval=30))
