@@ -9,13 +9,6 @@ def validate_coinType(coinType: str) -> bool:
             return {'val': False, 'text' : 'Token is registered, but not allowed!'}
     else :
         return {'val': False, 'text' : 'Token is not registered, regist ahead!'}
-    # if(record):
-    #     print(record['allow'])
-
-    # if len(coinType) >= 5:
-    #     return True
-    # else:
-    #     return False
 
 def validate_boosting_period(boosting_period) -> bool :
     if boosting_period.isdigit():
