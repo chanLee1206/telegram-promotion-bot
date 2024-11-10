@@ -1,7 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes, CallbackContext, MessageHandler, filters
 
-from bot.validator import validate_token_id, validate_boosting_period, validate_wallet_address
+from bot.validator import validate_coinType, validate_boosting_period, validate_wallet_address
 
 # Store the procedure handlers globally for later removal
 procedure_handler = None
@@ -46,25 +46,25 @@ async def btn_trendStart_handler(update: Update, context: CallbackContext) -> No
     await query.answer()  # Required to stop the "loading" circle
 
     # Ask for the token ID
-    await query.message.reply_text(text="➡️ Please enter your token ID to boost trending:")
+    await query.message.reply_text(text="➡️ Please enter your coinType of your meme Token to boost trending:")
 
     # Register the handler for token ID input
-    procedure_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, get_token_id)
+    procedure_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, get_coinType)
     context.application.add_handler(procedure_handler)
 
-async def get_token_id(update: Update, context: CallbackContext) -> None:
+async def get_coinType(update: Update, context: CallbackContext) -> None:
     global procedure_handler  # Declare global to modify the handler
 
-    token_id = update.message.text
+    coinType = update.message.text
     
     # If user types 'exit', reset to start
-    if token_id.lower() == 'exit':
+    if coinType.lower() == 'exit':
         await reset_to_start(update, context)
         return
-
-    if validate_token_id(token_id):
-        context.user_data["token_id"] = token_id
-        await update.message.reply_text(f"Token ID received: {token_id}. Now, enter the boosting period:")
+    val_response = validate_coinType(coinType)
+    if val_response['val']:
+        context.user_data["coinType"] = coinType
+        await update.message.reply_text(f"Token ID received: {coinType}. Now, enter the boosting period:")
         
         # Remove the token handler and proceed to the next input for boosting period
         context.application.remove_handler(procedure_handler)
@@ -73,8 +73,8 @@ async def get_token_id(update: Update, context: CallbackContext) -> None:
         procedure_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, get_boosting_period)
         context.application.add_handler(procedure_handler)
     else:
-        await update.message.reply_text(f"❌ Invalid Token ID: {token_id}. Type 'exit' to cancel and restart.")
-        print(f"Invalid Token ID: {token_id}")
+        await update.message.reply_text(f"❌ {val_response['text']}. Type 'exit' to cancel and restart.")
+        print(f"Invalid Token ID: {coinType}")
 
 async def get_boosting_period(update: Update, context: CallbackContext) -> None:
     global procedure_handler  # Declare global to modify the handler
@@ -125,14 +125,14 @@ async def get_wallet_address(update: Update, context: CallbackContext) -> None:
 
 async def confirm_details(update: Update, context: CallbackContext) -> None:
     # Retrieve all the information collected
-    token_id = context.user_data.get("token_id", "Not provided")
+    coinType = context.user_data.get("coinType", "Not provided")
     boosting_period = context.user_data.get("boosting_period", "Not provided")
     wallet_address = context.user_data.get("wallet_address", "Not provided")
 
     # Summarize the information and ask for confirmation
     confirmation_text = (
         "Please confirm the following details:\n\n"
-        f"Token ID: {token_id}\n"
+        f"Token ID: {coinType}\n"
         f"Boosting Period: {boosting_period} minutes\n"
         f"Wallet Address: {wallet_address}\n\n"
         "Type 'ok' to confirm or 'exit' to cancel and restart."

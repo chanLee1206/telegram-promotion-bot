@@ -1,9 +1,21 @@
-def validate_token_id(token_id: str) -> bool:
-    """Validate that the token ID has at least 5 characters."""
-    if len(token_id) >= 5:
-        return True
-    else:
-        return False
+from db.db import fetch_Cointype
+def validate_coinType(coinType: str) -> bool:
+    record = fetch_Cointype(coinType)
+    print('fetch from database :-------------- ', record)
+    if(record) :
+        if(record['allow']) :
+            return {'val': True, 'text' : 'success'}
+        else :
+            return {'val': False, 'text' : 'Token is registered, but not allowed!'}
+    else :
+        return {'val': False, 'text' : 'Token is not registered, regist ahead!'}
+    # if(record):
+    #     print(record['allow'])
+
+    # if len(coinType) >= 5:
+    #     return True
+    # else:
+    #     return False
 
 def validate_boosting_period(boosting_period) -> bool :
     if boosting_period.isdigit():

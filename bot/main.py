@@ -107,6 +107,7 @@ async def main():
     # Add handlers for the /start and /help commands
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
+    
     application.add_handler(CallbackQueryHandler(btn_trendStart_handler, pattern="ready_to_start"))
 
     # Start polling for the bot

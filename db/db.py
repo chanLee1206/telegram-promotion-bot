@@ -60,3 +60,23 @@ def load_global_token_arr():
             print(f"Error during query: {err}")
     else:
         print("Database connection is not available.")
+
+def fetch_Cointype(coin_type):
+    conn = get_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+        # with conn.cursor() as cursor:
+            # Query to check if the coinType exists in the tb_tokens table
+            query = "SELECT * FROM tb_tokens WHERE coinType = %s LIMIT 1"
+            cursor.execute(query, (coin_type,))
+            # Fetch result
+            record = cursor.fetchone()
+            # if(record) :
+            #     print("fetched record data - " , record, record["allow"])
+            # else :
+            #     print("fetched record data - " , "None")
+                
+            return record
+    except Exception as e:
+        print(f"Error during retrieval: {e}")
+        return []
