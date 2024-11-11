@@ -122,58 +122,55 @@ async def start_menu(update_or_query, context: ContextTypes.DEFAULT_TYPE):
         "6️⃣ Wait for tx confirmation and click 'Start Trending'"
     )
     reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("I'm ready to trend", callback_data="coinType")]])
-    input_seq = "coinType"
+    context.user_data['user_id'] = None
         
     if isinstance(update_or_query, Update):
         # await update_or_query.message.reply_text(text=message_text, parse_mode="HTML", reply_markup=reply_markup)
-        context.user_data['user_id'] = update_or_query.message.from_user.id
-
         sent_message = await update_or_query.message.reply_text(
             text=message_text, parse_mode="HTML", reply_markup=reply_markup
         )
         context.user_data['bot_message_id'] = sent_message.message_id
+        print('bot_message_id', context.user_data['bot_message_id'])
     else:
+        print('bot_message_id', context.user_data['bot_message_id'])
         await update_or_query.edit_message_text(text=message_text, parse_mode="HTML", reply_markup=reply_markup)
-        context.user_data['user_id'] = update_or_query.from_user.id
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await start_menu(update, context)
 
-# async def handle_startTrending(update: Update, context: CallbackContext) -> None:
-#     global front_msg_id, front_chat_id
-    
-#     front_chat_id = context.user_data['chat_id']
-#     front_msg_id = context.user_data['message_id']
-    
-#     user_config['isStart'] = True
-        
-#     await context.bot.edit_message_text(
-#         chat_id=front_chat_id,
-#         message_id=front_msg_id,
-#         text=f"❔ Send me the token's Contract Address or Pair Address or the Launchpad/Presale Url: \n\n Supported Chains: BASE, BSC, ETH, MANTA, POL, SOL, SUI, TRX"
-#     )
-
-  
-    
+   
 async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global input_seq
     input_text = update.message.text
     print('inputted Text:', input_text)
 
     # Validate coin type
     coinValidating = validate_coinType(input_text.strip())
-    
-    if coinValidating['val']:
-        context.user_data['coinType'] = input_text
-        await delete_last_message(update, context)  # Delete the user's reply
+    print('msgHandler-------', coinValidating, context.user_data['user_id'], input_seq, context.user_data.get('bot_message_id'))
+    bot_message_id = context.user_data.get('bot_message_id')
+    if(context.user_data['user_id'] and input_seq == "coinType") :
+        if coinValidating['val']:
+            context.user_data['coinType'] = input_text
+            await delete_last_message(update, context)  # Delete the user's reply
 
-        # Edit the original bot message with confirmation details
-        bot_message_id = context.user_data.get('bot_message_id')
-        if bot_message_id:
-            text = f"Selected Token:\n\nCA:\n{context.user_data['coinType']}"
-            reply_keyboard = [
-                [InlineKeyboardButton("❌ Close", callback_data="toStartMenu"),
-                 InlineKeyboardButton("✅ Confirm", callback_data="period_select")]]
-            reply_markup = InlineKeyboardMarkup(reply_keyboard)
+            # Edit the original bot message with confirmation details
+            if bot_message_id:
+                text = f"Selected Token:\n\nCA:\n{context.user_data['coinType']}"
+                reply_keyboard = [
+                    [InlineKeyboardButton("❌ Close", callback_data="toStartMenu"),
+                    InlineKeyboardButton("✅ Confirm", callback_data="period_select")]]
+                reply_markup = InlineKeyboardMarkup(reply_keyboard)
+
+                await context.bot.edit_message_text(
+                    chat_id=update.effective_chat.id,
+                    message_id=bot_message_id,
+                    text=text,
+                    parse_mode="HTML",
+                    reply_markup=reply_markup
+                )
+        else:
+            text = f"Failed Token:\n\nCA:\n{coinValidating['text']}"
+            reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("❌ Close", callback_data="toStartMenu")]])
 
             await context.bot.edit_message_text(
                 chat_id=update.effective_chat.id,
@@ -182,13 +179,56 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 parse_mode="HTML",
                 reply_markup=reply_markup
             )
-    else:
-        # Handle invalid coin type here if needed
-        pass
-        
-async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+            await delete_last_message(update, context)  # Delete the user's reply
+            # Handle invalid coin type here if needed
+            
+async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global input_seq
     query = update.callback_query
-    user_id = query.from_user.id
+    await query.answer()
+  
+    print(f"Boost!-----{query.data}\n")
+
+    callback_data = query.data
+    if callback_data.startswith("boost_"):
+        # Parse the period and cost from the callback data
+        period, cost = callback_data.split("_")[1:3]
+        context.user_data['period'] = period
+        context.user_data['cost'] = cost
+        await summaryView(update, context)
+
+async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    period = context.user_data['period']
+    cost = context.user_data['cost']
+    server_account = "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"
+    message_text = (
+        "⚡ <b>ANCY Trending Boost</b> ⚡\n\n"
+        f"<b>Top Trending  for {period}</b>\n"
+        "<b>Token:</b> Ancy Peosi\n"
+        # "<b>Telegram:</b> https://t.me/AncyPeosiPortal\n\n"
+        f"🔗 <b>Activate the boost by sending {cost} SUI to:</b>\n"
+        f"<code>{server_account}</code>\n\n"
+        f"<b>Step 1:</b> Send {cost} SUI\n"
+        "<b>Step 2:</b> Click Verify Payment to verify the transaction\n"
+        "<b>Step 3:</b> Watch ANCY soar to the Top trending shortly!\n\n"
+        "🚀 <i>Get ready for a double dose of trending power!</i> 🚀\n\n"
+    )
+    keyboard = [
+        [
+            InlineKeyboardButton("✅ Verify Payment", callback_data="verify_payment"),
+            InlineKeyboardButton("🔙 Back", callback_data="period_select"),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    if update.message:
+        await update.message.edit_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+    elif update.callback_query:
+        await update.callback_query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+
+async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    global input_seq
+    query = update.callback_query
     await query.answer()
   
     print(f"here ROUTE!-----{query.data}\n")
@@ -197,6 +237,8 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await query.message.delete()
         
     if query.data == "coinType" :
+        context.user_data['user_id'] = query.from_user.id
+        input_seq = "coinType"
         await query.edit_message_text(
             text=f"❔ Send me the token's Contract Address or Pair Address or the Launchpad/Presale Url: \n\n Supported Chains: BASE, BSC, ETH, MANTA, POL, SOL, SUI, TRX"
         )
@@ -205,20 +247,32 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await start_menu(query, context)
         
     if query.data == "period_select":
-        print("here confirm click!")    
-        text = (
-            f"Support Account: @Boso098\n"
-            f"Our FAQ Channel: @Dgitalworld\n"
+        message_text = (
+            "<b>Trending Boost</b>\n"
+            "Trending boost guarantees your token on Multichain Trending\n\n"
+            "<b>Select the Period:</b>"
         )
-    await query.message.reply_text(text=text)
-    if query.data == "balance_check":
-        text = (
-            f"🎉Prepaids Stock Bot— Checker\n\n"
-            f"Reply to this message with the card details in the format:\n"
-            f"<code>cc:mm:yy:cvv</code> | e.g., <code>1234567890123456:01:24:123</code>\n\n"
-            f"<i>Checks are charged at</i> <code>US$0.03</code> <i>per successful check.</i>"
-        )
-    await query.message.reply_text(text=text, parse_mode="HTML")
+
+        # Define the inline keyboard with multiple buttons in a grid format
+        keyboard = [
+            [InlineKeyboardButton("12 Hours | 45 SUI", callback_data="boost_12hours_45"),
+            InlineKeyboardButton("1 week | 350 SUI", callback_data="boost_1week_350")],
+            [InlineKeyboardButton("24 Hours | 75 SUI", callback_data="boost_24hours_75"),
+            InlineKeyboardButton("2 weeks | 600 SUI", callback_data="boost_2weeks_600")],
+            [InlineKeyboardButton("48 Hours | 125 SUI", callback_data="boost_48hours_125"),
+            InlineKeyboardButton("3 weeks | 800 SUI", callback_data="boost_3weeks_800")],
+            [InlineKeyboardButton("3 days  | 180 SUI", callback_data="boost_3days_180"),
+            InlineKeyboardButton("1 month | 1000 SUI", callback_data="boost_1month_1000")],
+            [InlineKeyboardButton("🔙 Back", callback_data="toStartMenu")]
+        ]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        input_seq = "coinType"
+        await query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+
+    if query.data == "view_summary":
+        await summaryView(update, context)
+       
     if query.data == "close":
         await query.message.delete()
       
@@ -244,10 +298,10 @@ async def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, msgHandler))
     
     # application.add_handler(CallbackQueryHandler(handle_startTrending, pattern="startTrending"))
-    application.add_handler(CallbackQueryHandler(
-        route, 
-        pattern="^(coinType|period_select|toStartMenu|confirm|support|balance_check|help|profile|listings|back_to_main|toggle_stock_notification|withdraw_lltc|deposit_lltc|deposit|withdraw|addone|back_to_profile|view_card_history|transfer_balance|get_vendor_access|get_relist_access)$")
-    )
+    application.add_handler(CallbackQueryHandler(route, 
+                            pattern="^(cancel|coinType|period_select|toStartMenu|confirm|ack_to_main|close)$"))
+    application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
+
     
     asyncio.create_task(poll_transactions(application, interval=30))
     await run_polling(application)
