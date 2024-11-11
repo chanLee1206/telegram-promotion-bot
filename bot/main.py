@@ -204,7 +204,7 @@ async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     message_text = (
         "⚡ <b>ANCY Trending Boost</b> ⚡\n\n"
         f"<b>Top Trending  for {period}</b>\n"
-        "<b>Token:</b> Ancy Peosi\n"
+        "<b>Token:</b> Ancy Peosi\n\n"
         # "<b>Telegram:</b> https://t.me/AncyPeosiPortal\n\n"
         f"🔗 <b>Activate the boost by sending {cost} SUI to:</b>\n"
         f"<code>{server_account}</code>\n\n"
@@ -214,10 +214,8 @@ async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         "🚀 <i>Get ready for a double dose of trending power!</i> 🚀\n\n"
     )
     keyboard = [
-        [
-            InlineKeyboardButton("✅ Verify Payment", callback_data="verify_payment"),
-            InlineKeyboardButton("🔙 Back", callback_data="period_select"),
-        ]
+        [InlineKeyboardButton("✅ Verify Payment", callback_data="verify_payment")],
+        [InlineKeyboardButton("🔙 Back", callback_data="period_select")],        
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -272,10 +270,32 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if query.data == "view_summary":
         await summaryView(update, context)
-       
+
+    if query.data == "verify_payment" : 
+        print('here verify payment!')
+        await query.edit_message_text(text="Validating Purchase ...")
+        
+        # Call the payment tracking function and handle its result
+        validate_payment = await track_payment()
+        if validate_payment:
+            await query.edit_message_text(
+                text="Congratulations! You succeeded in Trend boosting! 👍 Your trend boost will be applied immediately."
+            )
+        else:
+            await query.edit_message_text(text="⚠️ Payment not detected! If already sent, try again in a minute.")
+            await asyncio.sleep(5)    
+            await summaryView(update, context)       # Return to summary if payment     
+
     if query.data == "close":
         await query.message.delete()
-      
+
+async def track_payment():
+    # Simulate payment validation delay
+    await asyncio.sleep(5)
+    return True  # For testing, this can be set to True to simulate successful payment
+
+
+   
 async def main():
     global cur_coin_idx , last_txn_arr
     cur_coin_idx = 0
@@ -298,9 +318,9 @@ async def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, msgHandler))
     
     # application.add_handler(CallbackQueryHandler(handle_startTrending, pattern="startTrending"))
-    application.add_handler(CallbackQueryHandler(route, 
-                            pattern="^(cancel|coinType|period_select|toStartMenu|confirm|ack_to_main|close)$"))
+    application.add_handler(CallbackQueryHandler(route, pattern="^(cancel|coinType|period_select|toStartMenu|verify_payment|confirm|ack_to_main|close)$"))
     application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
+
 
     
     asyncio.create_task(poll_transactions(application, interval=30))
