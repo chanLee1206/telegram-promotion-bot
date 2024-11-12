@@ -283,9 +283,10 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         print('here verify payment!')
         await query.edit_message_text(text="Validating Purchase ...")
         
-        # Call the payment tracking function and handle its result
-        validate_payment = await track_payment(context.user_data['server_account'])
-        if validate_payment:
+        # validate_payment = await check_vaild_payment(context.user_data['server_account'], context.user_data['cost'])
+        is_valid_payment = await check_vaild_payment(context.user_data['server_account'], context.user_data['cost'])
+
+        if is_valid_payment:
             await query.edit_message_text(
                 text="Congratulations! You succeeded in Trend boosting! 👍 Your trend boost will be applied immediately."
             )
@@ -297,29 +298,20 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if query.data == "close":
         await query.message.delete()
 
-async def track_payment(server_account="0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"):
+async def check_vaild_payment(server_account="0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281", amount):
     # Simulate payment validation delay
-    await asyncio.sleep(5)
     current_time = datetime.now()
-    time_ahead = current_time - timedelta(minutes=20)
+    time_ahead = current_time - timedelta(minutes=15)
     timestamp_ahead = int(time_ahead.timestamp())
     
-    detedted_txns = await fetch_account_txns(server_account, timestamp_ahead)
+    detected_txns = await fetch_account_txns(server_account, timestamp_ahead, amount)
     checked_txns = await fetch_account_payments(server_account, timestamp_ahead, 'reg')
-    print(detedted_txns, '\n')
+    print(detected_txns, '\n')
     print(checked_txns, '\n')
     return True
 
-
-   
-
-
 # Get the timestamp for 15 minutes ahead
 
-
-    
-    
-    return True  # For testing, this can be set to True to simulate successful payment
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         'I can respond to:\n/start - Start the bot\n/help - Show this help message'
