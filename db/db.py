@@ -53,7 +53,7 @@ def load_global_token_arr():
     if conn:
         try:
             with conn.cursor() as cursor:
-                query = "SELECT symbol, name, decimals, coinType, supply FROM tb_tokens"
+                query = "SELECT symbol, name, launchPad, decimals, coinType, supply FROM tb_tokens where allow = 1"
                 cursor.execute(query)
                 results = cursor.fetchall()
                 column_names = [desc[0] for desc in cursor.description]
@@ -99,6 +99,26 @@ async def fetch_db_payments(server_account, timestamp = 1704067200) :
     except Exception as e:
         print(f"Error during retrieval: {e}")
         return []
+async def regist_payment(user_data, payment_data) :
+
+    period_ms = {'12hours': 43200000, '24hours': 86400000, '48hours': 172800000, '3days': 259200000,
+                  '1week': 604800000, '2weeks': 1209600000, '3weeks': 1814400000, '1month': 2592000000}
+    
+    trend_txn_record = {'from_account': payment_data['fromAccount'],
+                        'to_account' : payment_data['account'],
+                        'timestamp' : payment_data['timestamp'],
+                        'sui_amount': payment_data['amount'],
+                        'digest' : payment_data['digest']
+                    }
+    trend_history_record = {'digest' : payment_data['digest'],
+                            'username' : user_data['user_name'],
+                            'token_symbol' : user_data['coinSymbol'],
+                            'start_timestamp' : payment_data['timestamp'],
+                            'end_timestamp' : payment_data['timestamp'] + period_ms[user_data['period']],
+                    }
+    print(trend_txn_record, '\n', trend_history_record, '\n')     
+    #add trend_txn_record to 'tb_trend_txns' table
+    #add trend_history_record to 'tb_'
 
 async def main():
     account = "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"

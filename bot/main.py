@@ -14,7 +14,7 @@ from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 from api_test.txns_account import fetch_account_txns
 
-from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments
+from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments, regist_payment
 from db.collet_last_txns import init_last_txns
 import atexit
 
@@ -145,20 +145,36 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global input_seq
     input_text = update.message.text
-    print('inputted Text:', input_text)
+    # print('inputted Text:', input_text)
 
     # Validate coin type
     coinValidating = validate_coinType(input_text.strip())
-    print('msgHandler-------', coinValidating, context.user_data['user_id'], input_seq, context.user_data.get('bot_message_id'))
+    
+    # print('msgHandler-------', coinValidating, context.user_data['user_id'], input_seq, context.user_data.get('bot_message_id'))
+    
     bot_message_id = context.user_data.get('bot_message_id')
     if(context.user_data['user_id'] and input_seq == "coinType") :
         if coinValidating['val']:
+            
             context.user_data['coinType'] = input_text
+            selected_token = next((token for token in global_token_arr if token['coinType'] == context.user_data['coinType']), None)
+            print('inputted coinInfo----------', selected_token)
+            context.user_data['coinSymbol'] = selected_token['symbol']
+            context.user_data['coinName'] = selected_token['name']
+            context.user_data['launchPad'] = selected_token.get('launchPad', 'Unknown')  
+            
             await delete_last_message(update, context)  # Delete the user's reply
 
             # Edit the original bot message with confirmation details
             if bot_message_id:
-                text = f"Selected Token:\n\nCA:\n{context.user_data['coinType']}"
+                text = (
+                    f"Selected Token:\n\n"
+                    f"Name : {context.user_data['coinName']}\n"
+                    f"Symbol : {context.user_data['coinSymbol']}\n"
+                    f"LuanchPad : 💸{context.user_data['launchPad']}💸\n\n"
+
+                    f"CA:{context.user_data['coinType']}"
+                )
                 reply_keyboard = [
                     [InlineKeyboardButton("❌ Close", callback_data="toStartMenu"),
                     InlineKeyboardButton("✅ Confirm", callback_data="period_select")]]
@@ -248,7 +264,7 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         context.user_data['user_name'] = query.from_user.name
         input_seq = "coinType"
         await query.edit_message_text(
-            text=f"❔ Send me the token's Contract Address or Pair Address or the Launchpad/Presale Url: \n\n Supported Chains: BASE, BSC, ETH, MANTA, POL, SOL, SUI, TRX"
+            text=f"❔ Send me the token's coinType(regist ahead): \n\n Supported Chains: SUI"
         )
         
     if query.data == "toStartMenu":
@@ -293,7 +309,7 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             )
             print('user_data : ', context.user_data, '\n')
             print('payment_data : ', valid_payment[0], '\n')
-            # regist_payment(context.user_data, valid_payment[0])
+            await regist_payment(context.user_data, valid_payment[0])
         else:
             await query.edit_message_text(text="⚠️ Payment not detected! If already sent, try again in a minute.")
             await asyncio.sleep(5)    
