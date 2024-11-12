@@ -1,5 +1,6 @@
 import asyncio
-import time
+import time  
+from datetime import datetime, timedelta
 
 
 from bot.validator import validate_coinType, validate_boosting_period, validate_wallet_address
@@ -11,8 +12,9 @@ from bot.config import BOT_TOKEN, CHAT_ID
 
 from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
+from api_test.txns_account import fetch_account_txns
 
-from db.db import initialize_connection, close_connection, load_global_token_arr
+from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_account_payments
 from db.collet_last_txns import init_last_txns
 import atexit
 
@@ -197,10 +199,16 @@ async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
         context.user_data['cost'] = cost
         await summaryView(update, context)
 
+def get_trendReceiveAccount() : 
+
+    return "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"
+
+
 async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     period = context.user_data['period']
     cost = context.user_data['cost']
-    server_account = "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"
+    server_account = get_trendReceiveAccount()
+    context.user_data['server_account'] = server_account
     message_text = (
         "⚡ <b>ANCY Trending Boost</b> ⚡\n\n"
         f"<b>Top Trending  for {period}</b>\n"
@@ -276,7 +284,7 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await query.edit_message_text(text="Validating Purchase ...")
         
         # Call the payment tracking function and handle its result
-        validate_payment = await track_payment()
+        validate_payment = await track_payment(context.user_data['server_account'])
         if validate_payment:
             await query.edit_message_text(
                 text="Congratulations! You succeeded in Trend boosting! 👍 Your trend boost will be applied immediately."
@@ -289,11 +297,33 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if query.data == "close":
         await query.message.delete()
 
-async def track_payment():
+async def track_payment(server_account="0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"):
     # Simulate payment validation delay
     await asyncio.sleep(5)
-    return True  # For testing, this can be set to True to simulate successful payment
+    current_time = datetime.now()
+    time_ahead = current_time - timedelta(minutes=20)
+    timestamp_ahead = int(time_ahead.timestamp())
+    
+    detedted_txns = await fetch_account_txns(server_account, timestamp_ahead)
+    checked_txns = await fetch_account_payments(server_account, timestamp_ahead, 'reg')
+    print(detedted_txns, '\n')
+    print(checked_txns, '\n')
+    return True
 
+
+   
+
+
+# Get the timestamp for 15 minutes ahead
+
+
+    
+    
+    return True  # For testing, this can be set to True to simulate successful payment
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        'I can respond to:\n/start - Start the bot\n/help - Show this help message'
+    )
 
    
 async def main():
@@ -321,8 +351,6 @@ async def main():
     application.add_handler(CallbackQueryHandler(route, pattern="^(cancel|coinType|period_select|toStartMenu|verify_payment|confirm|ack_to_main|close)$"))
     application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
 
-
-    
     asyncio.create_task(poll_transactions(application, interval=30))
     await run_polling(application)
 
