@@ -125,6 +125,7 @@ async def start_menu(update_or_query, context: ContextTypes.DEFAULT_TYPE):
     )
     reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("I'm ready to trend", callback_data="coinType")]])
     context.user_data['user_id'] = None
+    context.user_data['user_name'] = None
         
     if isinstance(update_or_query, Update):
         # await update_or_query.message.reply_text(text=message_text, parse_mode="HTML", reply_markup=reply_markup)
@@ -244,6 +245,7 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         
     if query.data == "coinType" :
         context.user_data['user_id'] = query.from_user.id
+        context.user_data['user_name'] = query.from_user.name
         input_seq = "coinType"
         await query.edit_message_text(
             text=f"❔ Send me the token's Contract Address or Pair Address or the Launchpad/Presale Url: \n\n Supported Chains: BASE, BSC, ETH, MANTA, POL, SOL, SUI, TRX"
@@ -283,13 +285,15 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         print('here verify payment!')
         await query.edit_message_text(text="Validating Purchase ...")
         
-        # validate_payment = await check_vaild_payment(context.user_data['server_account'], context.user_data['cost'])
-        is_valid_payment = await check_vaild_payment(context.user_data['cost'], context.user_data['server_account'])
+        valid_payment = await check_vaild_payment(context.user_data['cost'], context.user_data['server_account'])
 
-        if is_valid_payment:
+        if valid_payment:
             await query.edit_message_text(
                 text="Congratulations! You succeeded in Trend boosting! 👍 Your trend boost will be applied immediately."
             )
+            print('user_data : ', context.user_data, '\n')
+            print('payment_data : ', valid_payment[0], '\n')
+            # regist_payment(context.user_data, valid_payment[0])
         else:
             await query.edit_message_text(text="⚠️ Payment not detected! If already sent, try again in a minute.")
             await asyncio.sleep(5)    
@@ -303,6 +307,7 @@ async def check_vaild_payment(amount, server_account="0xd6840994167c67bf8063921f
     current_time = datetime.now()
     time_ahead = current_time - timedelta(minutes=15)
     timestamp_ahead = int(time_ahead.timestamp()*1000)
+
     amount = 100000000
     timestamp_ahead = 0
     
@@ -316,7 +321,7 @@ async def check_vaild_payment(amount, server_account="0xd6840994167c67bf8063921f
     filtered_detected_txns = [item for item in detected_txns if item['digest'] not in digest_set]
     print('filtered_txns', filtered_detected_txns)
     
-    return False
+    return filtered_detected_txns
 
 # Get the timestamp for 15 minutes ahead
 
