@@ -2,14 +2,14 @@ import aiohttp
 import asyncio
 
 
-async def fetch_account_txns(account, amount, start_timestamp=1704067200):
-    
+async def fetch_account_txns(account, amount, start_timestamp=1704067200000):
+    # start_timestamp=0
     url = f"https://api.blockberry.one/sui/v1/accounts/{account}/activity?size=20&orderBy=DESC"
     headers = {
         "accept": "*/*",
         "x-api-key": "F9Y7kRMOYmfHycPaRrWBjRNLrIQmx0"
     }
-
+    
     # Use aiohttp to make an asynchronous GET request
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as response:
@@ -22,7 +22,7 @@ async def fetch_account_txns(account, amount, start_timestamp=1704067200):
                 extracted_data = []
                 for item in txn_detail:
                     timestamp = item.get('timestamp')
-                    if(timestamp<= start_timestamp) : continue
+                    if(timestamp < start_timestamp) : continue
                     
                     coins = item.get('details').get('detailsDto').get('coins')[0]
                     digest = item.get('digest')
@@ -51,7 +51,7 @@ async def fetch_account_txns(account, amount, start_timestamp=1704067200):
 async def main():
     account = "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"
 
-    details = await fetch_account_txns(account, 100000000,1730427928668)
+    details = await fetch_account_txns(account, 100000000, 1730427928668)
     print(details)
 
 # Running the example

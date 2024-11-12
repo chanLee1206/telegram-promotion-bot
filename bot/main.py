@@ -14,7 +14,7 @@ from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 from api_test.txns_account import fetch_account_txns
 
-from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_account_payments
+from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments
 from db.collet_last_txns import init_last_txns
 import atexit
 
@@ -284,7 +284,7 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await query.edit_message_text(text="Validating Purchase ...")
         
         # validate_payment = await check_vaild_payment(context.user_data['server_account'], context.user_data['cost'])
-        is_valid_payment = await check_vaild_payment(context.user_data['server_account'], context.user_data['cost'])
+        is_valid_payment = await check_vaild_payment(context.user_data['cost'], context.user_data['server_account'])
 
         if is_valid_payment:
             await query.edit_message_text(
@@ -298,17 +298,25 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if query.data == "close":
         await query.message.delete()
 
-async def check_vaild_payment(server_account="0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281", amount):
-    # Simulate payment validation delay
+async def check_vaild_payment(amount, server_account="0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"):
+    amount = float(amount)
     current_time = datetime.now()
     time_ahead = current_time - timedelta(minutes=15)
-    timestamp_ahead = int(time_ahead.timestamp())
+    timestamp_ahead = int(time_ahead.timestamp()*1000)
+    amount = 100000000
+    timestamp_ahead = 0
     
-    detected_txns = await fetch_account_txns(server_account, timestamp_ahead, amount)
-    checked_txns = await fetch_account_payments(server_account, timestamp_ahead, 'reg')
-    print(detected_txns, '\n')
-    print(checked_txns, '\n')
-    return True
+    detected_txns = await fetch_account_txns(server_account, amount, timestamp_ahead)
+    digests = await fetch_db_payments(server_account, int(time_ahead.timestamp()*1000))
+    # digests = await fetch_db_payments(server_account, timestamp_ahead)
+    print('detected_txns', detected_txns, '\n')
+    print('db_txns', digests, '\n')
+    
+    digest_set = {item['digest'] for item in digests}
+    filtered_detected_txns = [item for item in detected_txns if item['digest'] not in digest_set]
+    print('filtered_txns', filtered_detected_txns)
+    
+    return False
 
 # Get the timestamp for 15 minutes ahead
 

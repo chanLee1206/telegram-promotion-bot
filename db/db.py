@@ -32,6 +32,7 @@ def initialize_connection():
             connection = None
 
 def get_connection():
+    global connection
     """Retrieve the current database connection."""
     if connection is None:
         initialize_connection()
@@ -82,13 +83,14 @@ def fetch_Cointype(coin_type):
         print(f"Error during retrieval: {e}")
         return []
 
-async def fetch_account_payments(timestamp = 1704067200) :
+async def fetch_db_payments(server_account, timestamp = 1704067200) :
+# async def fetch_db_payments(timestamp = 1704067200) :
     conn = get_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
         # with conn.cursor() as cursor:
             # Query to check if the coinType exists in the tb_tokens table
-            query = f"SELECT * FROM tb_trend_receive WHERE timestamps > {timestamp}"
+            query = f"SELECT * FROM tb_trend_txns WHERE to_account = '{server_account}' and timestamp > {timestamp}"
             print(query)
             cursor.execute(query)
             # Fetch result
@@ -100,18 +102,19 @@ async def fetch_account_payments(timestamp = 1704067200) :
 
 async def main():
     account = "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"
-    # queryType = "unReg" # all / reg / unReg
-    # timestamp = 1704067200
-    # print(fetch_account_payments(account, 1704067200, queryType))
-    # Simulate payment validation delay
-    # await asyncio.sleep(5)
+    timestamp = 1704067200
+   
     current_time = datetime.now()
     time_ahead = current_time - timedelta(minutes=20)
-    timestamp_ahead = int(time_ahead.timestamp())
-    
-    detected_txns = await fetch_account_txns(account, timestamp_ahead)
-    checked_txns = await fetch_account_payments(account, timestamp_ahead, 'reg')
-    print('detected from account--------', detected_txns, '\n')
+    timestamp_ahead_ms = int(time_ahead.timestamp()) * 1000
+
+    # detected_txns = await fetch_account_txns(account, 10000000 , timestamp_ahead)
+    # detected_txns = await fetch_account_txns(account, 10000000 , 1730427928668)
+    # details = await fetch_account_txns(account, 100000000, 1730427928668)
+    print(current_time.timestamp(), timestamp_ahead_ms) #1731417311
+    checked_txns = await fetch_db_payments(account, timestamp_ahead_ms)
+
+    # print('detected from account--------', detected_txns, '\n')
     print('detected from db ------------', checked_txns, '\n')
 
 if __name__ == "__main__":
