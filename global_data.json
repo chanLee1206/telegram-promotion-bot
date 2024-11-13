@@ -46,7 +46,7 @@
     }
   ],
   "last_txn_arr": { "SUI": "", "ANCY": "", "SUIYAN": "", "AAA": "" },
-  "unit_coin_price": 2.96,
+  "unit_coin_price": 2.99,
   "pinned_trending_url": "https://t.me/suitrending_boost/301",
-  "pinned_message_id": 301
+  "pinned_msgID": null
 }
