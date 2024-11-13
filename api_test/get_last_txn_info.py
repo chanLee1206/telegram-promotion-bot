@@ -48,11 +48,10 @@ async def getLast_trans_info_of_coin(coin_type, lastTxn):
     if (tx_hashes[0]['txHash'] == lastTxn) :
         print('not new Txn, quit other apis')
         return {"function": 'none'}  # Handle the absence of function data
-    # if functions[0] not in ['buy', 'sell', 'swap']:
-    #     return {"function": 'etc'}
-    if "buy" not in functions[0]: 
-        # print('not but function')
-        return {"function": 'not buy'}
+
+    # if "buy" not in functions[0]: 
+    #     # print('not but function')
+    #     return {"function": 'not buy'}
 
     await asyncio.sleep(5)  # Wait for the specified interval
 

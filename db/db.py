@@ -1,6 +1,7 @@
 import pymysql
 import asyncio
-from globals import global_token_arr
+# from globals import global_token_arr
+import globals
 
 import time  
 from datetime import datetime, timedelta
@@ -58,10 +59,11 @@ def load_global_token_arr():
                 results = cursor.fetchall()
                 column_names = [desc[0] for desc in cursor.description]
                 
-                global_token_arr.clear()
-                global_token_arr.extend([dict(zip(column_names, row)) for row in results])
+                # global_token_arr.clear()
+                # global_token_arr.extend([dict(zip(column_names, row)) for row in results])
+                globals.global_token_arr = [dict(zip(column_names, row)) for row in results]
               
-                print("Data loaded successfully:", global_token_arr)
+                print("Data loaded successfully:", globals.global_token_arr)
             conn.commit()
         except pymysql.MySQLError as err:
             print(f"Error during query: {err}")

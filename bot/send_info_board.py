@@ -7,8 +7,9 @@ from math import log10
 from datetime import datetime, timedelta
 from telegram.constants import ParseMode
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-# from telegram import  InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+
+import globals
 
 async def send_info_board(bot, chat_id: str, txn_info) -> None:
     print('channel_board_add')
@@ -23,7 +24,7 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
         # f"<b>Sui Trending</b>\n"  # Simulated green header with a green dot
         f"<b>${txn_info['coinName']} :  {txn_info['function']}!</b>\n\n"  # Bolded for emphasis
         f"{image_particles}\n\n"  # Add the image particles row
-        f"{real_unit_icon} <b>{txn_info['realUnitCoinAmount']:.2f} SUI</b> (${txn_info['realUnitCoinAmount'] * 1.98:.2f})\n"  # Green right arrow
+        f"{real_unit_icon} <b>{txn_info['realUnitCoinAmount']:.2f} SUI</b> (${txn_info['realUnitCoinAmount'] * globals.unit_coin_price:.2f})\n"  # Green right arrow
         f"{real_cur_icon} <b>{int(txn_info['realCurCoinAmount']):,} ${txn_info['coinSymbol']}</b>\n\n"  # Yellow left arrow for coin amount
         f"👤 <a href='https://suiscan.xyz/mainnet/tx/{txn_info['digest']}'>0x{txn_info['digest'][:2]}...{txn_info['digest'][-3:]}</a>: New TXN\n"
         # f"{price_variation_str}"  # Display formatted price variation with line break

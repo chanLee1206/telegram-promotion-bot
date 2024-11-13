@@ -13,13 +13,14 @@ from bot.config import BOT_TOKEN, CHAT_ID
 from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 from api_test.txns_account import fetch_account_txns
+from api_test.coinInfo_cointype import getUnitCoin
 
 from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments, regist_payment
 from db.collet_last_txns import init_last_txns
 import atexit
 
-from globals import global_token_arr
-
+# from globals import global_token_arr
+import globals
 # Initialize the application globally
 
 last_txn_arr = []
@@ -77,13 +78,16 @@ async def poll_transactions(application, interval=7):
 
     # print(global_token_arr)
     while True:
-        curCoin = global_token_arr[cur_coin_idx]
-
-        postFlag = await track_coin_post(application, curCoin)
-
-        await asyncio.sleep(interval) 
+        curCoin = globals.global_token_arr[cur_coin_idx]
         
-        cur_coin_idx = (cur_coin_idx + 1) % len(global_token_arr)
+        if curCoin['symbol'] == "SUI":
+            unitCoinPrice = await getUnitCoin()
+            print('unit_coin_price - ', unitCoinPrice)
+        else:
+            postFlag = await track_coin_post(application, curCoin)
+
+        await asyncio.sleep(interval)
+        cur_coin_idx = (cur_coin_idx + 1) % len(globals.global_token_arr)
         # cur_coin_idx = 0
 
 
@@ -157,7 +161,7 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         if coinValidating['val']:
             
             context.user_data['coinType'] = input_text
-            selected_token = next((token for token in global_token_arr if token['coinType'] == context.user_data['coinType']), None)
+            selected_token = next((token for token in globals.global_token_arr if token['coinType'] == context.user_data['coinType']), None)
             print('inputted coinInfo----------', selected_token)
             context.user_data['coinSymbol'] = selected_token['symbol']
             context.user_data['coinName'] = selected_token['name']
@@ -356,10 +360,10 @@ async def main():
     atexit.register(close_connection)
 
     load_global_token_arr()
-    last_txn_arr = init_last_txns(global_token_arr)
+    last_txn_arr = init_last_txns(globals.global_token_arr)
     print("Initialized last_txn_arr:", last_txn_arr)  # Debugging line
 
-    if not global_token_arr:
+    if not globals.global_token_arr:
         print("Error: global_token_arr is empty after loading.")
         return
 

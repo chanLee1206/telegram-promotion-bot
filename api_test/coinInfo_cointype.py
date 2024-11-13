@@ -3,14 +3,9 @@ import requests
 import aiohttp
 import asyncio
 
-from globals import global_token_arr
+import globals
 
 async def fetch_coin_details(coin_type):
-    # global global_token_arr
-    
-    # print(global_token_arr)
-    # matching_token = [token for token in global_token_arr if token['coinType'] == coin_type]
-    
     url = f"https://api.blockberry.one/sui/v1/coins/{coin_type}"
     headers = {
         "accept": "*/*",
@@ -40,6 +35,13 @@ async def fetch_coin_details(coin_type):
                 return None
 
 # Example usage
+
+async def getUnitCoin() :
+    sui_coinType = "0x2::sui::SUI"
+    sui_coin = await fetch_coin_details(sui_coinType)
+    globals.unit_coin_price = sui_coin.get('price', 2.0)
+    return {'unit_coin_price': globals.unit_coin_price}
+
 async def main():
     # coin_type = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
     # coin_type = "0x82f7064c75c9b0533030f77715225ab438a359071dadfa316ef0b4cc8a184c8e::bubl::BUBL"
