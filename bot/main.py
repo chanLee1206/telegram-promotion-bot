@@ -16,14 +16,14 @@ from api_test.txns_account import fetch_account_txns
 from api_test.coinInfo_cointype import getUnitCoin
 
 from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments, regist_payment
-from db.collet_last_txns import init_last_txns
+from db.collect_last_txns import init_last_txns
 import atexit
 
 # from globals import global_token_arr
 import globals
 # Initialize the application globally
 
-last_txn_arr = []
+
 cur_coin_idx = 0 
 
 input_seq = {}
@@ -39,19 +39,16 @@ async def other_task():
         await asyncio.sleep(10)  # Example delay for other processing
 
 def regist_lastTxn(txn_info):
-    global last_txn_arr
-    
-    last_txn_arr[txn_info['coinSymbol']] = txn_info['digest']
-   
+    globals.last_txn_arr[txn_info['coinSymbol']] = txn_info['digest']
     # print('regist-', last_txn_arr)
 
 async def track_coin_post(application, track_coin):
-    global last_txn_arr
+    
 
     # print(f"Fetching Last_txn for {track_coin} at {time.strftime('%X')}")
     # print(last_txn_arr)
 
-    txn_info = await getLast_trans_info_of_coin(track_coin['coinType'], last_txn_arr[track_coin['symbol']])
+    txn_info = await getLast_trans_info_of_coin(track_coin['coinType'], globals.last_txn_arr[track_coin['symbol']])
     
     # print(txn_info)
     if 'digest' not in txn_info:
@@ -59,7 +56,7 @@ async def track_coin_post(application, track_coin):
         return False
     # print('lastDigest-', txn_info['coinSymbol'], last_txn_arr[txn_info['coinSymbol']])
 
-    if last_txn_arr[txn_info['coinSymbol']] == txn_info['digest']:
+    if globals.last_txn_arr[txn_info['coinSymbol']] == txn_info['digest']:
         # print("Continue, not new!")
         return False
     else:
@@ -352,15 +349,18 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
    
 async def main():
-    global cur_coin_idx , last_txn_arr
+    global cur_coin_idx
     cur_coin_idx = 0
 
     initialize_connection()
     atexit.register(close_connection)
+    atexit.register(globals.save_globals)
 
-    load_global_token_arr()
-    last_txn_arr = init_last_txns(globals.global_token_arr)
-    print("Initialized last_txn_arr:", last_txn_arr)  # Debugging line
+    # load_global_token_arr()
+    globals.load_globals()
+    
+    globals.last_txn_arr = init_last_txns(globals.global_token_arr)
+    print("Initialized last_txn_arr:", globals.last_txn_arr)  # Debugging line
 
     if not globals.global_token_arr:
         print("Error: global_token_arr is empty after loading.")
