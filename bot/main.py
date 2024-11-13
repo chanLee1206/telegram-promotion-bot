@@ -82,7 +82,6 @@ async def poll_transactions(application, interval=7):
         
         if curCoin['symbol'] == "SUI":
             unitCoinPrice = await getUnitCoin()
-            print('unit_coin_price - ', unitCoinPrice)
         else:
             postFlag = await track_coin_post(application, curCoin)
 

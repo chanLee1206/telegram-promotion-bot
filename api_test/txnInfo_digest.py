@@ -26,7 +26,9 @@ async def get_transaction_amounts(digest):
 
                 timestampMs = res_result.get('timestampMs')
                 txn_balance = res_result.get('balanceChanges')
-                transContent = {'timestampMs': timestampMs, "unit_coin": 0, "cur_coin": 0}
+                txn_sender = res_result.get('transaction', {}).get('data', {}).get('sender', "unknown")
+
+                transContent = {'timestampMs': timestampMs, "unit_coin": 0, "cur_coin": 0, "sender" : txn_sender}
 
                 for entry in txn_balance:
                     coin_type = entry['coinType']

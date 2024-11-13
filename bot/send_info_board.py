@@ -23,10 +23,11 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
     message = (
         # f"<b>Sui Trending</b>\n"  # Simulated green header with a green dot
         f"<b>${txn_info['coinName']} :  {txn_info['function']}!</b>\n\n"  # Bolded for emphasis
-        f"{image_particles}\n\n"  # Add the image particles row
-        f"{real_unit_icon} <b>{txn_info['realUnitCoinAmount']:.2f} SUI</b> (${txn_info['realUnitCoinAmount'] * globals.unit_coin_price:.2f})\n"  # Green right arrow
-        f"{real_cur_icon} <b>{int(txn_info['realCurCoinAmount']):,} ${txn_info['coinSymbol']}</b>\n\n"  # Yellow left arrow for coin amount
-        f"👤 <a href='https://suiscan.xyz/mainnet/tx/{txn_info['digest']}'>0x{txn_info['digest'][:2]}...{txn_info['digest'][-3:]}</a>: New TXN\n"
+        f"{image_particles}\n\n"  
+        f"{real_unit_icon} <b>{txn_info['realUnitCoinAmount']:.2f} SUI</b> (${txn_info['realUnitCoinAmount'] * globals.unit_coin_price:.2f})\n"  
+        f"{real_cur_icon} <b>{int(txn_info['realCurCoinAmount']):,} </b> ${txn_info['coinSymbol']}\n\n"  
+        f"👤 <a href='https://suiscan.xyz/mainnet/account/{txn_info['sender']}/activity'>0x{txn_info['sender'][:2]}...{txn_info['sender'][-3:]}</a>: New <a href='https://suiscan.xyz/mainnet/tx/{txn_info['digest']}'>TXN</a>\n"
+
         # f"{price_variation_str}"  # Display formatted price variation with line break
         # f"💧 <b>Liquidity:</b> {txn_info['liquidity']}\n"
         f"🏛️ <b>Market Cap: $</b> {int(txn_info['marketCap']):,}\n"

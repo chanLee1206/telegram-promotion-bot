@@ -20,6 +20,7 @@ def trans_view_format(combined_raw_info):
     trans_view_info = {
         "digest": combined_raw_info["txHash"],
         "time": formatted_time,
+        "sender": combined_raw_info["sender"],
         "coinName": combined_raw_info["coinName"],
         "coinSymbol": combined_raw_info["coinSymbol"],
         "coinType": combined_raw_info["coinType"],
@@ -69,6 +70,7 @@ async def getLast_trans_info_of_coin(coin_type, lastTxn):
         "txHash": tx_hashes[0]['txHash'],
         # 'txHash' : 'Bc3vPfA5D4ZGUSsXxdXEGewqpXtdJGg6JS3ZS5XQLzmB',
         "timestampMs": transaction_info['timestampMs'],
+        "sender": transaction_info['sender'],
         "coinSymbol": coin_info['symbol'],
         "coinName": coin_info['name'],
         "coinType": coin_info['coinType'],
