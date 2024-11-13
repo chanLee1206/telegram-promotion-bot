@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import asyncio
 
 import pdb
+import globals
 # from globals import global_last_txns
 
 LastTxnDigest = ""
@@ -17,6 +18,9 @@ def trans_view_format(combined_raw_info):
     utc_time = datetime.fromtimestamp(int(combined_raw_info["timestampMs"]) / 1000, tz=timezone.utc)
     formatted_time = utc_time.strftime('%Y-%m-%d %H:%M:%S')
 
+    cur_token = next((token for token in globals.global_token_arr if token['coinType'] == combined_raw_info["coinType"]), None)
+    print('cur_token global_token_arr on board -----------', globals.global_token_arr , '\n')
+    print('cur_token before on board -----------', cur_token , '\n')
     trans_view_info = {
         "digest": combined_raw_info["txHash"],
         "time": formatted_time,
@@ -30,6 +34,8 @@ def trans_view_format(combined_raw_info):
         "marketCap": combined_raw_info["marketCap"],
         "realUnitCoinAmount": combined_raw_info['unitCoinAmount'] / 10**unitCoinDecimals,
         "realCurCoinAmount": combined_raw_info['curCoinAmount'] / 10**combined_raw_info['decimals'],
+        "launchPad" : cur_token.get('launchPad', "unknown"),
+        "launchURL" : cur_token.get('launchURL', "unknown")
     }
     return trans_view_info
 
@@ -50,9 +56,9 @@ async def getLast_trans_info_of_coin(coin_type, lastTxn):
         print('not new Txn, quit other apis')
         return {"function": 'none'}  # Handle the absence of function data
 
-    # if "buy" not in functions[0]: 
-    #     # print('not but function')
-    #     return {"function": 'not buy'}
+    if "buy" not in functions[0]: 
+        # print('not but function')
+        return {"function": 'not buy'}
 
     await asyncio.sleep(5)  # Wait for the specified interval
 

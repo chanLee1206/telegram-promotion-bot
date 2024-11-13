@@ -365,8 +365,9 @@ async def main():
     if not globals.global_token_arr:
         print("Error: global_token_arr is empty after loading.")
         return
-
-    application = Application.builder().token(BOT_TOKEN).read_timeout(20).write_timeout(20).build()
+    """   bot = Bot(token="YOUR_BOT_TOKEN", request_timeout=60)  # Setting a higher request timeout
+    application = Application.builder().bot(bot).build() """
+    application = Application.builder().token(BOT_TOKEN).read_timeout(40).write_timeout(40).build()
 
     application.add_handler(CommandHandler("start", start))
     

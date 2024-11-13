@@ -54,7 +54,8 @@ def load_global_token_arr():
     if conn:
         try:
             with conn.cursor() as cursor:
-                query = "SELECT symbol, name, launchPad, decimals, coinType, supply FROM tb_tokens where allow = 1"
+                # query = "SELECT symbol, name, launchPad, decimals, coinType, supply FROM tb_tokens where allow = 1"
+                query = "SELECT * FROM tb_tokens where allow = 1"
                 cursor.execute(query)
                 results = cursor.fetchall()
                 column_names = [desc[0] for desc in cursor.description]

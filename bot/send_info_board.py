@@ -32,14 +32,14 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
         # f"💧 <b>Liquidity:</b> {txn_info['liquidity']}\n"
         f"🏛️ <b>Market Cap: $</b> {int(txn_info['marketCap']):,}\n"
         "\n"
-        f"<b>TRENDING</b> #{1} on <a href='https://twitter.com/Trending_Sui'>@Trending_Sui</a>\n\n"
-        # "🌐 <a href='https://example.com/dexs'>DexS</a> | 🔍 <a href='https://example.com/wallet'>Sui Wallet Tracker</a> | 🎯 <a href='https://example.com/sniper'>Sui Sniper Bot</a>\n\n"
-        # "👍 13   🔥 8   ❤️ 7   😂 1\n"  # Simulated reaction counts
+        f"<b>TRENDING </b> #{1} on @Ancy Trending\n\n"
+        
+        f"🏆<a href='{globals.pinned_trending_url}'>Trending</a> | 👁️<a href='{txn_info['launchURL']}'>{txn_info['launchPad']}</a>"         
     )
 
     # Single-line button at the end
     keyboard = [
-        [InlineKeyboardButton(f"Buy {txn_info['coinName']} on Sui Sniper", url="https://example.com/buy_blub")]
+        [InlineKeyboardButton(f"Buy {txn_info['coinName']} on {txn_info['launchPad']}", url=f"{txn_info['launchURL']}")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -60,6 +60,7 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
         chat_id=chat_id,
         text=message,
         parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup
+        # reply_markup=reply_markup
+        disable_web_page_preview=True
     )
 
