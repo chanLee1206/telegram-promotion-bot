@@ -14,14 +14,12 @@ import globals
 async def send_info_board(bot, chat_id: str, txn_info) -> None:
     print('channel_board_add')
     img_cnt = int(log10(abs(txn_info['realUnitCoinAmount']) + 1) * 10) + 1
-    image_particles = "🟢" *  img_cnt  # You can replace this emoji with another if needed
+    image_particles = "🟢" *  img_cnt  
 
     real_unit_icon = "➡️" if txn_info['realUnitCoinAmount'] >= 0 else "⬅️"
     real_cur_icon = "➡️" if txn_info['realCurCoinAmount'] >= 0 else "⬅️"
 
-    # Styled message content with header and updated arrow icons
     message = (
-        # f"<b>Sui Trending</b>\n"  # Simulated green header with a green dot
         f"<b>${txn_info['coinName']} :  {txn_info['function']}!</b>\n\n"  # Bolded for emphasis
         f"{image_particles}\n\n"  
         f"{real_unit_icon} <b>{txn_info['realUnitCoinAmount']:.2f} SUI</b> (${txn_info['realUnitCoinAmount'] * globals.unit_coin_price:.2f})\n"  
@@ -37,13 +35,12 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
         f"🏆<a href='{globals.pinned_trending_url}'>Trending</a> | 👁️<a href='{txn_info['launchURL']}'>{txn_info['launchPad']}</a>"         
     )
 
-    # Single-line button at the end
     keyboard = [
         [InlineKeyboardButton(f"Buy {txn_info['coinName']} on {txn_info['launchPad']}", url=f"{txn_info['launchURL']}")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-        # Path to your image file
+    # Path to your image file
     # image_path = os.path.join(os.path.dirname(__file__), "../assets/ancy_expand.png")
 
     # # Send image with caption as message content
@@ -55,7 +52,6 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
     #     reply_markup=reply_markup
     # )
 
-    # Send message to channel
     await bot.send_message(
         chat_id=chat_id,
         text=message,

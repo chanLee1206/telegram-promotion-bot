@@ -8,9 +8,6 @@ import asyncio
 
 import pdb
 import globals
-# from globals import global_last_txns
-
-LastTxnDigest = ""
 
 def trans_view_format(combined_raw_info):
     unitCoinDecimals = 9

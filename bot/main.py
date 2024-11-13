@@ -2,7 +2,6 @@ import asyncio
 import time  
 from datetime import datetime, timedelta
 
-
 from bot.validator import validate_coinType, validate_boosting_period, validate_wallet_address
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -19,15 +18,12 @@ from db.db import initialize_connection, close_connection, load_global_token_arr
 from db.collect_last_txns import init_last_txns
 import atexit
 
-# from globals import global_token_arr
 import globals
-# Initialize the application globally
 
 
 cur_coin_idx = 0 
 
 input_seq = {}
-# user_data = {}
 
 curCoinType = ""
 
@@ -44,7 +40,6 @@ def regist_lastTxn(txn_info):
 
 async def track_coin_post(application, track_coin):
     
-
     # print(f"Fetching Last_txn for {track_coin} at {time.strftime('%X')}")
     # print(last_txn_arr)
 
@@ -88,12 +83,10 @@ async def poll_transactions(application, interval=7):
 
 
 async def run_polling(application):
-    """Runs the polling for the Telegram bot in the event loop."""
     await application.initialize()
     await application.start()
     await application.updater.start_polling()
     
-    # Keep running until manually stopped
     while True:
         await asyncio.sleep(0.1)
 
@@ -103,7 +96,6 @@ async def delete_last_message(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     message_id = update.message.message_id
     
-    # Delete the message
     try:
         await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
     except Exception as e:
