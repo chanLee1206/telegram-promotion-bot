@@ -77,8 +77,8 @@ async def send_pinned_message():
 
     # Create the message text
     message_text = (
-        f"🍒 <b>Ancy's Trending:</b> SUI, Move Pump, PUMPFUN, MOONSHOT ...\n\n"     
-        f"{rank_paragraph}\n\n"
+        f"🍒 <b>Ancy's Trending:</b> SUI, Move Pump, PUMPFUN, MOONSHOT ...\n\n\n"     
+        f"{rank_paragraph}\n\n\n"
         f"📅 Update time: <code>{formatted_utc_time}</code>"
     )
     
