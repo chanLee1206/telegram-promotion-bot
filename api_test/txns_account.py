@@ -37,8 +37,8 @@ async def fetch_account_txns(account, amount, start_timestamp=1704067200000):
                         "coinType": coins.get('coinType'),     # Set to None or an actual value if available
                         "fromAccount": fromAccount
                     }
-                    # if new_dict['coinType'] != "0x2::sui::SUI" :
-                    #     continue
+                    if new_dict['coinType'] != "0x2::sui::SUI" :
+                        continue
                     if abs(new_dict['amount'] - amount) > 0.1 :
                         continue
                     extracted_data.append(new_dict)

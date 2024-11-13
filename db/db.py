@@ -99,6 +99,8 @@ async def fetch_db_payments(server_account, timestamp = 1704067200) :
     except Exception as e:
         print(f"Error during retrieval: {e}")
         return []
+
+    
 async def regist_payment(user_data, payment_data) :
 
     period_ms = {'12hours': 43200000, '24hours': 86400000, '48hours': 172800000, '3days': 259200000,
@@ -117,6 +119,44 @@ async def regist_payment(user_data, payment_data) :
                             'end_timestamp' : payment_data['timestamp'] + period_ms[user_data['period']],
                     }
     print(trend_txn_record, '\n', trend_history_record, '\n')     
+
+    connection = get_connection()
+    try:
+        with connection.cursor() as cursor:
+            # Insert into tb_trend_txns
+            txn_query = """
+                INSERT INTO tb_trend_txns (from_account, to_account, timestamp, sui_amount, digest)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            cursor.execute(txn_query, (
+                trend_txn_record['from_account'],
+                trend_txn_record['to_account'],
+                trend_txn_record['timestamp'],   # BIGINT
+                trend_txn_record['sui_amount'],  # INT
+                trend_txn_record['digest']
+            ))
+
+            # Insert into tb_trend_history
+            history_query = """
+                INSERT INTO tb_trend_history (digest, username, token_symbol, start_timestamp, end_timestamp)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            cursor.execute(history_query, (
+                trend_history_record['digest'],
+                trend_history_record['username'],
+                trend_history_record['token_symbol'],
+                trend_history_record['start_timestamp'],  # BIGINT
+                trend_history_record['end_timestamp']      # BIGINT
+            ))
+
+        # Commit the transaction
+        connection.commit()
+        print("Records inserted successfully.")
+
+    except pymysql.MySQLError as e:
+        print("Error occurred:", e)
+        connection.rollback()
+
     #add trend_txn_record to 'tb_trend_txns' table
     #add trend_history_record to 'tb_'
 

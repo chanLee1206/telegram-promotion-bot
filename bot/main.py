@@ -228,8 +228,9 @@ async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     context.user_data['server_account'] = server_account
     message_text = (
         "⚡ <b>ANCY Trending Boost</b> ⚡\n\n"
-        f"<b>Top Trending  for {period}</b>\n"
-        "<b>Token:</b> Ancy Peosi\n\n"
+        f"<b>Top Trending  for {period}</b>\n\n"
+        f"<b>Token Name: </b>{context.user_data['coinName']}\n"
+        f"<b>Token Symbol: </b>{context.user_data['coinSymbol']}\n\n"
         # "<b>Telegram:</b> https://t.me/AncyPeosiPortal\n\n"
         f"🔗 <b>Activate the boost by sending {cost} SUI to:</b>\n"
         f"<code>{server_account}</code>\n\n"
@@ -324,12 +325,12 @@ async def check_vaild_payment(amount, server_account="0xd6840994167c67bf8063921f
     time_ahead = current_time - timedelta(minutes=15)
     timestamp_ahead = int(time_ahead.timestamp()*1000)
 
-    amount = 100000000
-    timestamp_ahead = 0
+    # amount = 100000000
+    # timestamp_ahead = 0
     
     detected_txns = await fetch_account_txns(server_account, amount, timestamp_ahead)
-    digests = await fetch_db_payments(server_account, int(time_ahead.timestamp()*1000))
-    # digests = await fetch_db_payments(server_account, timestamp_ahead)
+    # digests = await fetch_db_payments(server_account, int(time_ahead.timestamp()*1000))
+    digests = await fetch_db_payments(server_account, timestamp_ahead)
     print('detected_txns', detected_txns, '\n')
     print('db_txns', digests, '\n')
     
