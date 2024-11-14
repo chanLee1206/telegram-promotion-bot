@@ -2,6 +2,8 @@ import asyncio
 import time  
 from datetime import datetime, timedelta
 
+from threading import Timer
+
 from bot.validator import validate_coinType, validate_boosting_period, validate_wallet_address
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -20,7 +22,6 @@ import atexit
 
 import globals
 
-
 cur_coin_idx = 0 
 
 input_seq = {}
@@ -30,26 +31,26 @@ curCoinType = ""
 front_msg_id = ""
 front_chat_id = ""
 
+# Store timers for each user to allow cancellation upon verification success
+verification_timers = {}
+
+paying_account_arr = []
+
 async def other_task():
     while True:
         await asyncio.sleep(10)  # Example delay for other processing
 
 def regist_lastTxn(txn_info):
     globals.last_txn_arr[txn_info['coinSymbol']] = txn_info['digest']
-    # print('regist-', last_txn_arr)
 
 async def track_coin_post(application, track_coin):
     
     # print(f"Fetching Last_txn for {track_coin} at {time.strftime('%X')}")
-    # print(last_txn_arr)
 
     txn_info = await getLast_trans_info_of_coin(track_coin['coinType'], globals.last_txn_arr[track_coin['symbol']])
     
-    # print(txn_info)
     if 'digest' not in txn_info:
-        # print('old digest, or not formal transaction')
         return False
-    # print('lastDigest-', txn_info['coinSymbol'], last_txn_arr[txn_info['coinSymbol']])
 
     if globals.last_txn_arr[txn_info['coinSymbol']] == txn_info['digest']:
         # print("Continue, not new!")
@@ -61,14 +62,10 @@ async def track_coin_post(application, track_coin):
         regist_lastTxn(txn_info)
 
         return True
-    
-
 
 async def poll_transactions(application, interval=7):
-    # global global_token_arr
     global cur_coin_idx
 
-    # print(global_token_arr)
     while True:
         curCoin = globals.global_token_arr[cur_coin_idx]
         
@@ -79,7 +76,6 @@ async def poll_transactions(application, interval=7):
 
         await asyncio.sleep(interval)
         cur_coin_idx = (cur_coin_idx + 1) % len(globals.global_token_arr)
-        # cur_coin_idx = 0
 
 
 async def run_polling(application):
@@ -91,8 +87,6 @@ async def run_polling(application):
         await asyncio.sleep(0.1)
 
 async def delete_last_message(update: Update, context: CallbackContext):
-    print('here delete last message', update.message.text)
-    # Get the chat ID and message ID of the user's last message
     chat_id = update.effective_chat.id
     message_id = update.message.message_id
     
@@ -130,19 +124,15 @@ async def start_menu(update_or_query, context: ContextTypes.DEFAULT_TYPE):
         print('bot_message_id', context.user_data['bot_message_id'])
         await update_or_query.edit_message_text(text=message_text, parse_mode="HTML", reply_markup=reply_markup)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await start_menu(update, context)
+
 
    
 async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global input_seq
     input_text = update.message.text
-    # print('inputted Text:', input_text)
 
     # Validate coin type
     coinValidating = validate_coinType(input_text.strip())
-    
-    # print('msgHandler-------', coinValidating, context.user_data['user_id'], input_seq, context.user_data.get('bot_message_id'))
     
     bot_message_id = context.user_data.get('bot_message_id')
     if(context.user_data['user_id'] and input_seq == "coinType") :
@@ -191,7 +181,6 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 reply_markup=reply_markup
             )
             await delete_last_message(update, context)  # Delete the user's reply
-            # Handle invalid coin type here if needed
             
 async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global input_seq
@@ -209,7 +198,6 @@ async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
         await summaryView(update, context)
 
 def get_trendReceiveAccount() : 
-
     return "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"
 
 
@@ -236,6 +224,7 @@ async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         [InlineKeyboardButton("🔙 Back", callback_data="period_select")],        
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+
     
     if update.message:
         await update.message.edit_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
@@ -244,6 +233,7 @@ async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global input_seq
+    global paying_account_arr
     query = update.callback_query
     await query.answer()
   
@@ -288,9 +278,25 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
 
     if query.data == "view_summary":
-        await summaryView(update, context)
+        paying_accounts = {account for account, username, start_timestamp, end_timestamp in paying_account_arr}
+        available_account_arr = [account for account in globals.total_account_arr if account not in paying_accounts]
+
+        if(available_account_arr) :
+            active_account = available_account_arr[0]  # First available account
+            start_timestamp = datetime.now()
+            end_timestamp = start_timestamp + timedelta(minutes=10)
+
+            paying_account_arr.append((active_account, context.user_data['user_name'], start_timestamp, end_timestamp))
+            await summaryView(update, context)
+            
+        else : 
+            query.message.reply_text(
+                text="Payment Account is not ready, try again!",
+            )            
 
     if query.data == "verify_payment" : 
+        user_id = query.from_user.id
+         
         print('here verify payment!')
         await query.edit_message_text(text="Validating Purchase ...")
         
@@ -303,13 +309,16 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             print('user_data : ', context.user_data, '\n')
             print('payment_data : ', valid_payment[0], '\n')
             await regist_payment(context.user_data, valid_payment[0])
+
         else:
             await query.edit_message_text(text="⚠️ Payment not detected! If already sent, try again in a minute.")
             await asyncio.sleep(5)    
             await summaryView(update, context)       # Return to summary if payment     
 
     if query.data == "close":
+        
         await query.message.delete()
+        
 
 async def check_vaild_payment(amount, server_account="0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"):
     amount = float(amount)
@@ -336,9 +345,15 @@ async def check_vaild_payment(amount, server_account="0xd6840994167c67bf8063921f
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
-        'I can respond to:\n/start - Start the bot\n/help - Show this help message'
+        'I can respond to:\n/start - Start trend\n /add - add memeToken\n /help - Show this help message'
+    )
+async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        'I can respond to:\n/start - Start trend\n /add - add memeToken\n /help - Show this help message'
     )
 
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await start_menu(update, context)
    
 async def main():
     global cur_coin_idx
@@ -348,20 +363,20 @@ async def main():
     atexit.register(close_connection)
     atexit.register(globals.save_globals)
 
-    # load_global_token_arr()
     globals.load_globals()
     
-    globals.last_txn_arr = init_last_txns(globals.global_token_arr)
+    # globals.last_txn_arr = init_last_txns(globals.global_token_arr)
     print("Initialized last_txn_arr:", globals.last_txn_arr)  # Debugging line
 
     if not globals.global_token_arr:
         print("Error: global_token_arr is empty after loading.")
         return
-    """   bot = Bot(token="YOUR_BOT_TOKEN", request_timeout=60)  # Setting a higher request timeout
-    application = Application.builder().bot(bot).build() """
+
     application = Application.builder().token(BOT_TOKEN).read_timeout(40).write_timeout(40).build()
 
-    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("add", add_command))
     
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, msgHandler))
     

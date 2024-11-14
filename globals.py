@@ -7,13 +7,14 @@ FILENAME = os.path.join(os.path.dirname(__file__), "global_data.json")
 
 global_token_arr = []
 unit_coin_price = 2.0
-pinned_trending_url = "https://t.me/suitrending_boost/301"
-pinned_msgID = 301
+pinned_trending_url = "https://t.me/suitrending_boost/571"
+pinned_msgID = 571
 last_txn_arr = []
+total_account_arr = ['0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281']
 
 
 def load_globals():
-    global global_token_arr, unit_coin_price, pinned_trending_url, pinned_msgID
+    global global_token_arr, unit_coin_price, pinned_trending_url, pinned_msgID, last_txn_arr
 
     global_token_arr = load_global_token_arr() #load from db
     if global_token_arr :

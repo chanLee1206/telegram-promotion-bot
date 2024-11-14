@@ -1,14 +1,11 @@
 import pymysql
 import asyncio
-# from globals import global_token_arr
-# import globals
 
 import time  
 from datetime import datetime, timedelta
 
 from api_test.txns_account import fetch_account_txns
 
-# Database connection details
 db_config = {
     'host': 'autorack.proxy.rlwy.net',
     'user': 'root',
@@ -17,7 +14,6 @@ db_config = {
     'port': 14715
 }
 
-# Global variable to hold the database connection
 connection = None
 
 def initialize_connection():
@@ -60,12 +56,9 @@ def load_global_token_arr():
                 results = cursor.fetchall()
                 column_names = [desc[0] for desc in cursor.description]
                 
-                # global_token_arr.clear()
-                # global_token_arr.extend([dict(zip(column_names, row)) for row in results])
-                # globals.global_token_arr = [dict(zip(column_names, row)) for row in results]
                 token_arr = [dict(zip(column_names, row)) for row in results]
 
-                print("Data loaded successfully:", token_arr)
+                # print("Data loaded successfully:", token_arr)
                 return token_arr
             
             conn.commit()
@@ -78,8 +71,6 @@ def fetch_Cointype(coin_type):
     conn = get_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
-        # with conn.cursor() as cursor:
-            # Query to check if the coinType exists in the tb_tokens table
             query = "SELECT * FROM tb_tokens WHERE coinType = %s LIMIT 1"
             cursor.execute(query, (coin_type,))
             # Fetch result
@@ -94,8 +85,6 @@ async def fetch_db_payments(server_account, timestamp = 1704067200) :
     conn = get_connection()
     try:
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
-        # with conn.cursor() as cursor:
-            # Query to check if the coinType exists in the tb_tokens table
             query = f"SELECT * FROM tb_trend_txns WHERE to_account = '{server_account}' and timestamp > {timestamp}"
             print(query)
             cursor.execute(query)
@@ -162,9 +151,6 @@ async def regist_payment(user_data, payment_data) :
     except pymysql.MySQLError as e:
         print("Error occurred:", e)
         connection.rollback()
-
-    #add trend_txn_record to 'tb_trend_txns' table
-    #add trend_history_record to 'tb_'
 
 async def main():
     account = "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"
