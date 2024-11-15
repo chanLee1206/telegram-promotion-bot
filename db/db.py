@@ -95,6 +95,9 @@ async def fetch_db_payments(server_account, timestamp = 1704067200) :
         print(f"Error during retrieval: {e}")
         return []
 
+def detect_launchpad(lauchURL) : 
+    if 'movepump.com' in lauchURL :
+        return "Move Pump"
     
 async def reg_memeToken(token):
     connection = get_connection()
@@ -114,7 +117,7 @@ async def reg_memeToken(token):
             data = (
                 token.get('symbol'),
                 token.get('name'),
-                token.get('launchpad'),
+                detect_launchpad(token['launchURL']),
                 token['launchURL'],
                 token['coinType'],
                 token.get('decimals'),

@@ -143,7 +143,7 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         context.user_data['add_token_info'] = coinInfo
         if coinInfo:
             # print(coinInfo)
-            await update.message.reply_text(text=f"Input launchPad URL : ", parse_mode='HTML')
+            await update.message.reply_text(text=f"Input launchPad URL : \n ex) https://movepump.com/token/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY", parse_mode='HTML',disable_web_page_preview=True)
             input_seq = "input_launchURL"
         else : 
             await update.message.reply_text(text=f"Invalid meme Token, try again", parse_mode='HTML')
@@ -384,7 +384,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global input_seq
     input_seq = "add_meme_token"
-    await update.message.reply_text("❔ Send me the token's exact coinType \n\n Supported Chains: SUI")
+    await update.message.reply_text("❔ Send me the token's exact coinType \nSupported Chains: SUI\n\n ex) 0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY")
     
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -400,7 +400,6 @@ async def main():
 
     globals.load_globals()
     
-    # globals.last_txn_arr = init_last_txns(globals.global_token_arr)
     print("Initialized last_txn_arr:", globals.last_txn_arr)  # Debugging line
 
     if not globals.global_token_arr:
