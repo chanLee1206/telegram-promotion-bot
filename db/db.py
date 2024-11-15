@@ -99,16 +99,17 @@ async def fetch_db_payments(server_account, timestamp = 1704067200) :
 async def reg_memeToken(token):
     connection = get_connection()
     success = False
-    error_message = None
+    message = None
 
     try:
         with connection.cursor() as cursor:
             # Insert into tokens if the symbol does not already exist
             query = """
-                INSERT INTO tokens (symbol, name, launchpad, launchURL, coinType)
-                SELECT %s, %s, %s, %s, %s FROM DUAL
+                INSERT INTO tb_tokens (symbol, name, launchpad, launchURL, coinType, decimals, supply)
+                SELECT %s, %s, %s, %s, %s, %s, %s
+                FROM DUAL
                 WHERE NOT EXISTS (
-                    SELECT 1 FROM tokens WHERE symbol = %s
+                    SELECT 1 FROM tb_tokens WHERE symbol = %s
                 );"""
             data = (
                 token.get('symbol'),
@@ -116,22 +117,25 @@ async def reg_memeToken(token):
                 token.get('launchpad'),
                 token['launchURL'],
                 token['coinType'],
-                token.get('symbol')
+                token.get('decimals'),
+                token.get('supply'),
+                token.get('symbol'),  # Added this to match the WHERE clause placeholder
             )
             cursor.execute(query, data)
         
-        # Commit the transaction if insertion is successful
-        connection.commit()
-        success = True
+        # Check if the row was inserted (affected rows)
+        if cursor.rowcount == 0:
+            message = f"Token {token.get('symbol')} already exists."
+        else:
+            connection.commit()
+            success = True
+            message = f"Token {token.get('symbol')} has been successfully added."
 
     except pymysql.MySQLError as e:
-        error_message = f"Error occurred: {e}"
+        message = f"Failed to add token {token.get('symbol')}. Error: {e}"
         connection.rollback()
 
-    finally:
-        connection.close()
-    
-    return success, error_message
+    return success, message
     
 async def regist_payment(user_data, payment_data) :
 

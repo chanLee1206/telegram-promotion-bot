@@ -142,21 +142,27 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         print(coinInfo)
         context.user_data['add_token_info'] = coinInfo
         if coinInfo:
-            print(coinInfo)
-            message_text = (
-                f"<b>{coinInfo.get('name')}</b>\n\n"
-                f"Symbol : {coinInfo.get('symbol')}"
-                f"Name: {coinInfo['name']}\n"
-                f"Ca:\n <code>{coinInfo['coinType']}</code>\n"                
-            )
-            reply_keyboard = [
-                [InlineKeyboardButton("❌ Close", callback_data="close"),
-                InlineKeyboardButton("✅ Confirm", callback_data="confirm_add")]]
-            reply_markup = InlineKeyboardMarkup(reply_keyboard)
-            
-            await update.message.reply_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+            # print(coinInfo)
+            await update.message.reply_text(text=f"Input launchPad URL : ", parse_mode='HTML')
+            input_seq = "input_launchURL"
         else : 
             await update.message.reply_text(text=f"Invalid meme Token, try again", parse_mode='HTML')
+        return
+    if input_seq == "input_launchURL" :
+        launchURL = input_text.strip()
+        context.user_data['add_token_info']['launchURL'] = launchURL
+        message_text = (
+            f"<b>{context.user_data['add_token_info'].get('name')}</b>\n\n"
+            f"Symbol : {context.user_data['add_token_info'].get('symbol')}"
+            f"Name: {context.user_data['add_token_info'].get('name')}\n"
+            f"LaunchPad URL: {context.user_data['add_token_info'].get('launchURL')}\n"
+            f"Ca:\n <code>{context.user_data['add_token_info'].get('coinType')}</code>\n"                
+        )
+        reply_keyboard = [
+            [InlineKeyboardButton("❌ Close", callback_data="close"),
+            InlineKeyboardButton("✅ Confirm", callback_data="confirm_add")]]
+        reply_markup = InlineKeyboardMarkup(reply_keyboard)
+        await update.message.reply_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
         return
     if context.user_data['user_id'] and input_seq == "coinType" :
         coinValidating = validate_coinType(input_text.strip())
@@ -339,11 +345,11 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await summaryView(update, context)       # Return to summary if payment     
     if query.data == "confirm_add" :
         # print('you confirm add!')
-        res = await reg_memeToken(context.user_data['add_memeToken'])
+        res, res_message = await reg_memeToken(context.user_data['add_token_info'])
         if (res == True) :
-            await query.edit_message_text(text="Adding success! Wait for allow")
+            await query.edit_message_text(text=f"Adding success! Wait for allow. {res_message}")
         else :
-            await query.edit_message_text(text=f"Failt to regist! {res}")
+            await query.edit_message_text(text=f"Failt to regist! {res_message}")
     if query.data == "close":
         await query.message.delete()
         
