@@ -96,6 +96,43 @@ async def fetch_db_payments(server_account, timestamp = 1704067200) :
         return []
 
     
+async def reg_memeToken(token):
+    connection = get_connection()
+    success = False
+    error_message = None
+
+    try:
+        with connection.cursor() as cursor:
+            # Insert into tokens if the symbol does not already exist
+            query = """
+                INSERT INTO tokens (symbol, name, launchpad, launchURL, coinType)
+                SELECT %s, %s, %s, %s, %s FROM DUAL
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM tokens WHERE symbol = %s
+                );"""
+            data = (
+                token.get('symbol'),
+                token.get('name'),
+                token.get('launchpad'),
+                token['launchURL'],
+                token['coinType'],
+                token.get('symbol')
+            )
+            cursor.execute(query, data)
+        
+        # Commit the transaction if insertion is successful
+        connection.commit()
+        success = True
+
+    except pymysql.MySQLError as e:
+        error_message = f"Error occurred: {e}"
+        connection.rollback()
+
+    finally:
+        connection.close()
+    
+    return success, error_message
+    
 async def regist_payment(user_data, payment_data) :
 
     period_ms = {'12hours': 43200000, '24hours': 86400000, '48hours': 172800000, '3days': 259200000,

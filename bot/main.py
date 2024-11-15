@@ -15,8 +15,10 @@ from bot.send_info_board import send_info_board
 from api_test.get_last_txn_info import getLast_trans_info_of_coin
 from api_test.txns_account import fetch_account_txns
 from api_test.coinInfo_cointype import getUnitCoin
+from api_test.coinInfo_cointype import fetch_coin_details
+# from api_test.url_validating import check_url_and_extract_meta
 
-from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments, regist_payment
+from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments, regist_payment, reg_memeToken
 from db.collect_last_txns import init_last_txns
 import atexit
 
@@ -132,12 +134,33 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     input_text = update.message.text
 
     # Validate coin type
-    coinValidating = validate_coinType(input_text.strip())
     
     bot_message_id = context.user_data.get('bot_message_id')
-    if(context.user_data['user_id'] and input_seq == "coinType") :
-        if coinValidating['val']:
+    if input_seq == "add_meme_token" : 
+        add_coinType = input_text.strip()
+        coinInfo = await fetch_coin_details(add_coinType)
+        print(coinInfo)
+        context.user_data['add_token_info'] = coinInfo
+        if coinInfo:
+            print(coinInfo)
+            message_text = (
+                f"<b>{coinInfo.get('name')}</b>\n\n"
+                f"Symbol : {coinInfo.get('symbol')}"
+                f"Name: {coinInfo['name']}\n"
+                f"Ca:\n <code>{coinInfo['coinType']}</code>\n"                
+            )
+            reply_keyboard = [
+                [InlineKeyboardButton("❌ Close", callback_data="close"),
+                InlineKeyboardButton("✅ Confirm", callback_data="confirm_add")]]
+            reply_markup = InlineKeyboardMarkup(reply_keyboard)
             
+            await update.message.reply_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+        else : 
+            await update.message.reply_text(text=f"Invalid meme Token, try again", parse_mode='HTML')
+        return
+    if context.user_data['user_id'] and input_seq == "coinType" :
+        coinValidating = validate_coinType(input_text.strip())
+        if coinValidating['val']:
             context.user_data['coinType'] = input_text
             selected_token = next((token for token in globals.global_token_arr if token['coinType'] == context.user_data['coinType']), None)
             print('inputted coinInfo----------', selected_token)
@@ -158,7 +181,7 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                     f"CA:{context.user_data['coinType']}"
                 )
                 reply_keyboard = [
-                    [InlineKeyboardButton("❌ Close", callback_data="toStartMenu"),
+                    [InlineKeyboardButton("❌ Close", callback_data="cancel"),
                     InlineKeyboardButton("✅ Confirm", callback_data="period_select")]]
                 reply_markup = InlineKeyboardMarkup(reply_keyboard)
 
@@ -314,9 +337,14 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await query.edit_message_text(text="⚠️ Payment not detected! If already sent, try again in a minute.")
             await asyncio.sleep(5)    
             await summaryView(update, context)       # Return to summary if payment     
-
+    if query.data == "confirm_add" :
+        # print('you confirm add!')
+        res = await reg_memeToken(context.user_data['add_memeToken'])
+        if (res == True) :
+            await query.edit_message_text(text="Adding success! Wait for allow")
+        else :
+            await query.edit_message_text(text=f"Failt to regist! {res}")
     if query.data == "close":
-        
         await query.message.delete()
         
 
@@ -348,9 +376,10 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         'I can respond to:\n/start - Start trend\n /add - add memeToken\n /help - Show this help message'
     )
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(
-        'I can respond to:\n/start - Start trend\n /add - add memeToken\n /help - Show this help message'
-    )
+    global input_seq
+    input_seq = "add_meme_token"
+    await update.message.reply_text("❔ Send me the token's exact coinType \n\n Supported Chains: SUI")
+    
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await start_menu(update, context)
@@ -381,7 +410,7 @@ async def main():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, msgHandler))
     
     # application.add_handler(CallbackQueryHandler(handle_startTrending, pattern="startTrending"))
-    application.add_handler(CallbackQueryHandler(route, pattern="^(cancel|coinType|period_select|toStartMenu|verify_payment|confirm|ack_to_main|close)$"))
+    application.add_handler(CallbackQueryHandler(route, pattern="^(cancel|confirm_add|coinType|period_select|toStartMenu|verify_payment|confirm|ack_to_main|close)$"))
     application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
 
     asyncio.create_task(poll_transactions(application, interval=30))
