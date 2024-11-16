@@ -1,7 +1,7 @@
 
 import json
 import os
-from db.db import load_global_token_arr
+from bot.db import load_global_token_arr
 
 FILENAME = os.path.join(os.path.dirname(__file__), "global_data.json")
 

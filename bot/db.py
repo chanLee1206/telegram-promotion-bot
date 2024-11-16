@@ -4,7 +4,7 @@ import asyncio
 import time  
 from datetime import datetime, timedelta
 
-from api_test.txns_account import fetch_account_txns
+# from bot.api import fetch_account_txns
 
 db_config = {
     'host': 'autorack.proxy.rlwy.net',

@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-BOT_TOKEN = '7616802949:AAEVIoSBug1sJBosOzO3lJ13kVqN_82MKRI'
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Hello! I am your bot. Use /help to see what I can do.')

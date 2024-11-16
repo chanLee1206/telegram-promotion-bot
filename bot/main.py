@@ -12,14 +12,11 @@ from bot.config import BOT_TOKEN, CHAT_ID
 
 
 from bot.send_info_board import send_info_board
-from api_test.get_last_txn_info import getLast_trans_info_of_coin
-from api_test.txns_account import fetch_account_txns
-from api_test.coinInfo_cointype import getUnitCoin
-from api_test.coinInfo_cointype import fetch_coin_details
-# from api_test.url_validating import check_url_and_extract_meta
 
-from db.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments, regist_payment, reg_memeToken
-from db.collect_last_txns import init_last_txns
+from bot.api import getLast_trans_info_of_coin, fetch_account_txns, fetch_coin_details
+
+from bot.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments, regist_payment, reg_memeToken
+
 import atexit
 
 import globals
@@ -37,6 +34,13 @@ front_chat_id = ""
 verification_timers = {}
 
 paying_account_arr = []
+
+
+async def getUnitCoin() :
+    sui_coinType = "0x2::sui::SUI"
+    sui_coin = await fetch_coin_details(sui_coinType)
+    globals.unit_coin_price = sui_coin.get('price', 2.0)
+    return {'unit_coin_price': globals.unit_coin_price}
 
 async def other_task():
     while True:
