@@ -69,19 +69,23 @@ async def track_coin_post(application, track_coin):
 
         return True
 
-async def poll_transactions(application, interval=7):
+async def scrap_transactions(application, interval=7):
     global cur_coin_idx
 
     while True:
-        curCoin = globals.global_token_arr[cur_coin_idx]
-        
-        if curCoin['symbol'] == "SUI":
-            unitCoinPrice = await getUnitCoin()
-        else:
-            postFlag = await track_coin_post(application, curCoin)
+        try:
+            curCoin = globals.global_token_arr[cur_coin_idx]
+            
+            if curCoin['symbol'] == "SUI":
+                unitCoinPrice = await getUnitCoin()
+            else:
+                postFlag = await track_coin_post(application, curCoin)
 
-        await asyncio.sleep(interval)
-        cur_coin_idx = (cur_coin_idx + 1) % len(globals.global_token_arr)
+            await asyncio.sleep(interval)
+            cur_coin_idx = (cur_coin_idx + 1) % len(globals.global_token_arr)
+
+        except Exception as e:
+            print(f"Error in poll_transactions: {e}")
 
 
 async def run_polling(application):
@@ -422,7 +426,7 @@ async def main():
     application.add_handler(CallbackQueryHandler(route, pattern="^(cancel|confirm_add|coinType|period_select|toStartMenu|verify_payment|confirm|ack_to_main|close)$"))
     application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
 
-    asyncio.create_task(poll_transactions(application, interval=30))
+    asyncio.create_task(scrap_transactions(application, interval=30))
     await run_polling(application)
 
 if __name__ == "__main__":
