@@ -1,4 +1,6 @@
 import asyncio
+import signal
+
 import time  
 from datetime import datetime, timedelta
 
@@ -422,7 +424,6 @@ async def main():
     
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, msgHandler))
     
-    # application.add_handler(CallbackQueryHandler(handle_startTrending, pattern="startTrending"))
     application.add_handler(CallbackQueryHandler(route, pattern="^(cancel|confirm_add|coinType|period_select|toStartMenu|verify_payment|confirm|ack_to_main|close)$"))
     application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
 

@@ -16,15 +16,32 @@ Swap -82.73SUI 	+2,497,024.24iuS 		on Cetus 4
 	
 
 {'coinType': '0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY', 
-'objectId': '0x120504fb9e9e2788c7a4cdb44c754cdc34835f9049df83146aeeb403eddf667f', 'coinName': 'Ancy Peosi', 'coinDenom': 'ANCY', 'decimals': 6, 'coinSymbol': 'ANCY', 'imgUrl': 'https://api.movepump.com/uploads/266_4adcb9f78e.jpeg', 'description': '$ANCY is the driving force behind the Ancy Peosi ecosystem memecoin project built on humor, satire, and insider trading parody, all powered by the SUI network. As a community-focused token, $ANCY brings together holders, NFT enthusiasts, and crypto traders for a unique and rebellious experience, with the mission to redefine what it means to trade like the elite.\n\nWith $ANCY, were not just building a memecoinwere building a satirical movement that invites everyone to trade with the cheeky confidence of Ancy Peosi herself.', 'supply': 10000000000.0, 'supplyInUsd': 6221.232830370642, 'price': 6.221232830370642e-07, 'dominance': None, 'circulatingSupply': None, 'marketCap': None, 'totalVolume': None, 'maxSupply': 
-None, 'fdv': 6221.232830370642, 'holdersCount': 297, 'packageId': '0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508', 'creatorAddress': '0x465539fb4566a4638c02fd6206abdae0cddc25d4da926fc8bdbbf9d74f59b6be', 'creatorName': '@ancypeosi', 'creatorImg': 'https://storage.googleapis.com/suins-nft-images/QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY.png', 'creatorSecurityMessage': None, 'createTimestamp': 1729469613846, 'isVerified': False, 'isBridged': False, 'securityMessage': None}
+'objectId': '0x120504fb9e9e2788c7a4cdb44c754cdc34835f9049df83146aeeb403eddf667f', 'coinName': 'Ancy Peosi', 
+'coinDenom': 'ANCY', 'decimals': 6, 'coinSymbol': 'ANCY', 'imgUrl': 'https://api.movepump.com/uploads/266_4adcb9f78e.jpeg',
+'description': '$ANCY is the driving force behind the Ancy Peosi ecosystem memecoin project built on humor, satire, and insider trading parody, all powered by the SUI network. 
+As a community-focused token, $ANCY brings together holders, NFT enthusiasts, and crypto traders for a unique and rebellious experience, w
+ith the mission to redefine what it means to trade like the elite.\n\nWith $ANCY, were not just building a memecoinwere
+ building a satirical movement that invites everyone to trade with the cheeky confidence of Ancy Peosi herself.', 
+ 'supply': 10000000000.0, 'supplyInUsd': 6221.232830370642, 'price': 6.221232830370642e-07, 'dominance': None, 
+ 'circulatingSupply': None, 'marketCap': None, 'totalVolume': None, 'maxSupply': 
+None, 'fdv': 6221.232830370642, 'holdersCount': 297, 
+'packageId': '0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508', 
+'creatorAddress': '0x465539fb4566a4638c02fd6206abdae0cddc25d4da926fc8bdbbf9d74f59b6be', 'creatorName': '@ancypeosi', 
+'creatorImg': 'https://storage.googleapis.com/suins-nft-images/QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY.png', 
+'creatorSecurityMessage': None, 'createTimestamp': 1729469613846, 'isVerified': False, 'isBridged': False, 
+'securityMessage': None}
 
 
 {'jsonrpc': '2.0', 'result': {'data': [], 'nextCursor': '899XpLHwPT2xSQZ3nYEHmhG3zUj3NFqLgv3SqvT2z3pP', 'hasNextPage': False}, 'id': 
 1}
 
-{'coinType': '0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY', 'objectId': '0x120504fb9e9e2788c7a4cdb44c754cdc34835f9049df83146aeeb403eddf667f', 'coinName': 'Ancy Peosi', 'coinDenom': 'ANCY', 'decimals': 6, 'coinSymbol': 'ANCY', 'imgUrl': 'https://api.movepump.com/uploads/266_4adcb9f78e.jpeg', 'description': '$ANCY is the driving force behind the Ancy Peosi ecosystem memecoin project built on humor, satire, and insider trading parody, all powered by the SUI network. As a community-focused token, $ANCY brings together holders, NFT enthusiasts, and crypto traders for a unique and rebellious experience, with the mission to redefine what it means to trade like the elite.\n\nWith $ANCY, were not just building a memecoinwere building a satirical movement that invites everyone to trade with the cheeky confidence of Ancy Peosi herself.', 'supply': 10000000000.0, 'supplyInUsd': 6221.232830370642, 'price': 6.221232830370642e-07, 'dominance': None, 'circulatingSupply': None, 'marketCap': None, 'totalVolume': None, 'maxSupply': 
-None, 'fdv': 6221.232830370642, 'holdersCount': 297, 'packageId': '0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508', 'creatorAddress': '0x465539fb4566a4638c02fd6206abdae0cddc25d4da926fc8bdbbf9d74f59b6be', 'creatorName': '@ancypeosi', 'creatorImg': 'https://storage.googleapis.com/suins-nft-images/QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY.png', 'creatorSecurityMessage': None, 'createTimestamp': 1729469613846, 'isVerified': False, 'isBridged': False, 'securityMessage': None}
+{'coinType': '0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY', 'objectId': '0x120504fb9e9e2788c7a4cdb44c754cdc34835f9049df83146aeeb403eddf667f', 
+'coinName': 'Ancy Peosi', 'coinDenom': 'ANCY', 'decimals': 6, 'coinSymbol': 'ANCY', 
+'imgUrl': 'https://api.movepump.com/uploads/266_4adcb9f78e.jpeg', 'description': '$ANCY is the driving force behind the Ancy Peosi ecosystem memecoin project built on humor, satire, and insider trading parody, all powered by the SUI network. As a community-focused token, $ANCY brings together holders, NFT enthusiasts, and crypto traders for a unique and rebellious experience, with the mission to redefine what it means to trade like the elite.\n\nWith $ANCY, were not just building a memecoinwere building a satirical movement that invites everyone to trade with the cheeky confidence of Ancy Peosi herself.',
+ 'supply': 10000000000.0, 'supplyInUsd': 6221.232830370642, 'price': 6.221232830370642e-07, 
+'dominance': None, 'circulatingSupply': None, 'marketCap': None, 'totalVolume': None, 'maxSupply': 
+None, 'fdv': 6221.232830370642, 'holdersCount': 297, 'packageId': '0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508', 'creatorAddress': '0x465539fb4566a4638c02fd6206abdae0cddc25d4da926fc8bdbbf9d74f59b6be', 
+'creatorName': '@ancypeosi', 'creatorImg': 'https://storage.googleapis.com/suins-nft-images/QmaLFg4tQYansFpyRqmDfABdkUVy66dHtpnkH15v1LPzcY.png', 'creatorSecurityMessage': None, 'createTimestamp': 1729469613846, 'isVerified': False, 'isBridged': False, 'securityMessage': None}
 
 
 'balanceChanges': [
