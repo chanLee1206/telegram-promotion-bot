@@ -12,6 +12,8 @@ async def fetch_coin_details(coinType):
             if response.status == 200:
                 coin_details = await response.json()
                 # return coin_details
+                dexes = coin_details.get('dexes')
+                liquidity_usd = sum(float(dex["liquidityUsd"]) for dex in dexes)
                 return {
                     'symbol': coin_details.get('symbol'),
                     'name': coin_details.get('name'),
@@ -20,6 +22,31 @@ async def fetch_coin_details(coinType):
                     'price': coin_details.get('price'),
                     'supply': coin_details.get('totalSupply'),
                     'dexes': coin_details.get('dexes'),
+                    'liquidity_usd' : liquidity_usd
+                }
+            else:
+                print(f"Error: {response.status}")
+                return None
+            
+async def fetch_coin_details(coinType):
+    url = f"https://api.raidenx.io/api/v1/sui/tokens/{coinType}"
+   
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                coin_details = await response.json()
+                # return coin_details
+                dexes = coin_details.get('dexes')
+                liquidity_usd = sum(float(dex["liquidityUsd"]) for dex in dexes)
+                return {
+                    'symbol': coin_details.get('symbol'),
+                    'name': coin_details.get('name'),
+                    'coinType': coin_details.get('address'),
+                    'decimals': coin_details.get('decimals'),
+                    'price': coin_details.get('price'),
+                    'supply': coin_details.get('totalSupply'),
+                    'dexes': coin_details.get('dexes'),
+                    'liquidity_usd' : liquidity_usd
                 }
             else:
                 print(f"Error: {response.status}")

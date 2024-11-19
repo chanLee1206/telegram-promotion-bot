@@ -50,7 +50,7 @@ def load_tokens():
     if conn:
         try:
             with conn.cursor() as cursor:
-                # query = "SELECT symbol, name, launchPad, decimals, coinType, supply FROM tb_tokens where allow = 1"
+                # query = "SELECT id, symbol, name, launchPad, decimals, coinType, supply FROM tb_tokens where allow = 1"
                 query = "SELECT * FROM tb_tokens where allow = 1"
                 cursor.execute(query)
                 results = cursor.fetchall()

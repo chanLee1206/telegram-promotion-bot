@@ -4,39 +4,48 @@ import os
 import string
 from math import log10
 
-from datetime import datetime, timedelta
 from telegram.constants import ParseMode
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
+
+from bot.api import fetch_coin_details
 
 import globals
 
 async def send_info_board(bot, chat_id: str, txn_info) -> None:
     print('channel_board_add')
-    img_cnt = int(log10(abs(txn_info['realUnitCoinAmount']) + 1) * 10) + 1
+    print(txn_info)
+    coin_symbol = txn_info.get('token').split('::')[-1]
+    search_coinType = txn_info.get('token')
+    selected_token = next((item for item in globals.global_token_arr if item['coinType'] == search_coinType), None)
+
+    api_coin_data = await fetch_coin_details(search_coinType)
+    liquidity = api_coin_data.get('liquidity_usd', '_')
+    
+    # print(search_coinType, ' : ', selected_token)
+
+    img_cnt = int(log10(float(txn_info['quoteAmount']) + 1) * 10) + 1
     image_particles = "🟢" *  img_cnt  
+    # coin_symbol = selected_token['symbol']
 
-    real_unit_icon = "➡️" if txn_info['realUnitCoinAmount'] >= 0 else "⬅️"
-    real_cur_icon = "➡️" if txn_info['realCurCoinAmount'] >= 0 else "⬅️"
-
+    
     message = (
-        f"<b>${txn_info['coinName']} :  {txn_info['function']}!</b>\n\n"  # Bolded for emphasis
+        f"<b>${coin_symbol} :  {txn_info['tradingType']}!</b>\n\n"  # Bolded for emphasis
         f"{image_particles}\n\n"  
-        f"{real_unit_icon} <b>{txn_info['realUnitCoinAmount']:.2f} SUI</b> (${txn_info['realUnitCoinAmount'] * globals.unit_coin_price:.2f})\n"  
-        f"{real_cur_icon} <b>{int(txn_info['realCurCoinAmount']):,} </b> ${txn_info['coinSymbol']}\n\n"  
-        f"👤 <a href='https://suiscan.xyz/mainnet/account/{txn_info['sender']}/activity'>0x{txn_info['sender'][:2]}...{txn_info['sender'][-3:]}</a>: New <a href='https://suiscan.xyz/mainnet/tx/{txn_info['digest']}'>TXN</a>\n"
+        f"➡️ <b>{float(txn_info['quoteAmount']):.2f,} SUI</b> (${float(txn_info['totalUsd']):.2f,})\n"  
+        f"⬅️ <b>{int(txn_info['baseAmount']):,} </b> ${coin_symbol}\n\n"  
+        f"👤 <a href='https://suiscan.xyz/mainnet/account/{txn_info['maker'].get('address')}/activity'>0x{txn_info['maker'].get('address')[:2]}...{txn_info['maker'].get('address')[-3:]}</a>: New <a href='https://suiscan.xyz/mainnet/tx/{txn_info['hash']}'>TXN</a>\n"
 
         # f"{price_variation_str}"  # Display formatted price variation with line break
-        # f"💧 <b>Liquidity:</b> {txn_info['liquidity']}\n"
-        f"🏛️ <b>Market Cap: $</b> {int(txn_info['marketCap']):,}\n"
-        "\n"
+        f"💧 <b>Liquidity:</b> ${int(liquidity):,}\n"
+        f"🏛️ <b>Market Cap: $</b> {int(float(txn_info.get('priceUsd'))*selected_token['supply']):,}\n\n"
         f"<b>TRENDING </b> #{1} on @Ancy Trending\n\n"
         
-        f"🏆<a href='{globals.pinned_trending_url}'>Trending</a> | 👁️<a href='{txn_info['launchURL']}'>{txn_info['launchPad']}</a>"         
+        f"🏆<a href='{globals.pinned_trending_url}'>Trending</a> | 👁️<a href='{selected_token['launchURL']}'>{selected_token['launchPad']}</a>"         
     )
-
+    # print(message)
     keyboard = [
-        [InlineKeyboardButton(f"Buy {txn_info['coinName']} on {txn_info['launchPad']}", url=f"{txn_info['launchURL']}")]
+        [InlineKeyboardButton(f"Buy {coin_symbol} on {selected_token['launchPad']}", url=f"{selected_token['launchURL']}")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 

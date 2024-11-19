@@ -26,6 +26,7 @@ from bot.db import db_initialize, close_connection, load_tokens, fetch_db_paymen
 import atexit
 
 import globals
+application = None
 
 sio = socketio.AsyncClient()
 stop_event = Event()  # Event to signal when to stop
@@ -39,13 +40,6 @@ front_chat_id = ""
 verification_timers = {}
 
 paying_account_arr = []
-
-
-async def getUnitCoin() :
-    sui_coinType = "0x2::sui::SUI"
-    sui_coin = await fetch_coin_details(sui_coinType)
-    globals.unit_coin_price = sui_coin.get('price', 2.0)
-    return {'unit_coin_price': globals.unit_coin_price}
 
 async def other_task():
     while True:
@@ -362,20 +356,18 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await start_menu(update, context)
 
 async def on_connect():
-
     print("Connected to WebSocket!")
-    await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
-        'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
-    })
-    await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
-        'pairId': '31ab399cb31e4c682f0e38cecf469742f13c190180fbae3b332468d670d28584'
-    })
-
-    await sio.emit('SUBSCRIBE_REALTIME_PAIR_STATS_CHANGED', {
-        'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356'
-    })
+    for pair_id in globals.global_pair_arr:
+        await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {'pairId': pair_id})
+        print(f"Emitted subscription for pairId: {pair_id}")
+    # await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
+    #     'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
+    # })
+ 
+    # await sio.emit('SUBSCRIBE_REALTIME_PAIR_STATS_CHANGED', {
+    #     'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356'
+    # })
         
-    print("Subscription message sent.")
 
 @sio.event
 async def connect():
@@ -390,10 +382,15 @@ async def connect_error(data):
 async def disconnect():
     print("Disconnected from WebSocket!")
 
-# @sio.on("TRANSACTION")
+@sio.on("TRANSACTION")
 async def handle_transaction(data):
+    global application
     try:
-        print(data, '\n')
+        # print(data, '\n')
+        if data.get('tradingType') == "BUY" :
+            await send_info_board(application.bot, CHAT_ID, data)
+        # await send_info_board(application.bot, CHAT_ID, data)
+        
     except Exception as e:
         print(f"Error processing transaction: {e}")
 
@@ -422,8 +419,7 @@ def stop_gracefully(signal_received, frame):
     sys.exit(0)       # Exit the script
    
 async def main():
-    global cur_coin_idx
-    cur_coin_idx = 0
+    global application
 
     db_initialize()
 
