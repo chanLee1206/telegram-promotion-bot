@@ -1,6 +1,9 @@
 import asyncio
 import socketio
+
 import signal
+import sys
+from threading import Event
 
 import time  
 from datetime import datetime, timedelta
@@ -25,12 +28,9 @@ import atexit
 import globals
 
 sio = socketio.AsyncClient()
-
-cur_coin_idx = 0 
+stop_event = Event()  # Event to signal when to stop
 
 input_seq = {}
-
-curCoinType = ""
 
 front_msg_id = ""
 front_chat_id = ""
@@ -407,26 +407,31 @@ async def track_transactions():
     SOCKET_URL = "wss://ws-sui.raidenx.io"
     try:
         await sio.connect(SOCKET_URL)  # Replace with your WebSocket URL
-        print("Attempting to connect to WebSocket server...")
-
+        print("Attempting to connect to WebSocket server...")       
         await sio.wait()
     except Exception as e:
         print(f"An error occurred: {e}") 
+    finally:
+        await sio.disconnect()
+
+def stop_gracefully(signal_received, frame):
+    """Handles Ctrl+C (SIGINT) signal."""
+    print("\nStopping gracefully...")
+    stop_event.set()  # Signal to stop the main loop
+    sio.disconnect()  # Disconnect from WebSocket
+    sys.exit(0)       # Exit the script
    
 async def main():
     global cur_coin_idx
     cur_coin_idx = 0
 
-    # initialize_connection()
+    initialize_connection()
+    signal.signal(signal.SIGINT, stop_gracefully)
+    
     atexit.register(close_connection)
     atexit.register(globals.save_globals)
 
-    # globals.load_globals()
-    # print("Initialized last_txn_arr:", globals.last_txn_arr)  # Debugging line
-
-    # if not globals.global_token_arr:
-    #     print("Error: global_token_arr is empty after loading.")
-    #     return
+    globals.load_globals()
 
     application = Application.builder().token(BOT_TOKEN).read_timeout(40).write_timeout(40).build()
 

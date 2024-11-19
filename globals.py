@@ -27,8 +27,8 @@ def load_globals():
         try:
             with open(FILENAME, "r") as f:
                 data = json.load(f)
-                last_txn_arr = data.get("last_txn_arr", [])
-                remove_deffect_txn_arr(global_token_arr, last_txn_arr)
+                # last_txn_arr = data.get("last_txn_arr", [])
+                # remove_deffect_txn_arr(global_token_arr, last_txn_arr)
                 unit_coin_price = data.get("unit_coin_price", 2.0)
                 pinned_trending_url = data.get("pinned_trending_url")
                 pinned_msgID = data.get("pinned_msgID")
