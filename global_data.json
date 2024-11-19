@@ -1,1 +1,74 @@
-{"global_token_arr": [{"id": 0, "symbol": "SUI", "name": "Sui", "coinType": "0x2::sui::SUI", "launchPad": "Move Pump", "launchURL": null, "decimals": 9, "supply": 10000000000, "allow": 1}, {"id": 1, "symbol": "ANCY", "name": "Ancy Peosi", "coinType": "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY", "launchPad": "Move Pump", "launchURL": "https://movepump.com/token/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY", "decimals": 6, "supply": 10000000000, "allow": 1}, {"id": 3, "symbol": "SUIYAN", "name": "Super Suiyan", "coinType": "0xe0fbaffa16409259e431b3e1ff97bf6129641945b42e5e735c99aeda73a595ac::suiyan::SUIYAN", "launchPad": "Move Pump", "launchURL": "https://movepump.com/token/0xe0fbaffa16409259e431b3e1ff97bf6129641945b42e5e735c99aeda73a595ac::suiyan::SUIYAN", "decimals": 6, "supply": 10000000000, "allow": 1}, {"id": 5, "symbol": "AAA", "name": "aaa cat", "coinType": "0xd976fda9a9786cda1a36dee360013d775a5e5f206f8e20f84fad3385e99eeb2d::aaa::AAA", "launchPad": "Move Pump", "launchURL": "0xd976fda9a9786cda1a36dee360013d775a5e5f206f8e20f84fad3385e99eeb2d::aaa::AAA", "decimals": 6, "supply": 10000000000, "allow": 1}, {"id": 9, "symbol": "WINU", "name": "Wrapped Inu", "coinType": "0x132ac0fad338e40eb4cba4ea0c4c11ebd4f10e989a2fd3ec3a6cd876e4925af7::winu::WINU", "launchPad": "Move pump", "launchURL": "https://movepump.com/token/0x132ac0fad338e40eb4cba4ea0c4c11ebd4f10e989a2fd3ec3a6cd876e4925af7::winu::WINU", "decimals": 6, "supply": 10000000000, "allow": 1}, {"id": 10, "symbol": "Mull", "name": "Mullet Dog", "coinType": "0x114701e40fd0d3987ae510b449bce11c1c7c7df04ef3205fd9c99fe20568f49f::mull::MULL", "launchPad": "Move Pump", "launchURL": "https://movepump.com/token/0x114701e40fd0d3987ae510b449bce11c1c7c7df04ef3205fd9c99fe20568f49f::mull::MULL", "decimals": 6, "supply": 10000000000, "allow": 1}], "last_txn_arr": [], "unit_coin_price": 2.0, "pinned_trending_url": "https://t.me/suitrending_boost/571", "pinned_msgID": 571}
+{
+  "global_token_arr": [
+    {
+      "id": 14,
+      "symbol": "ANCY",
+      "name": "ANCY",
+      "coinType": "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY",
+      "launchPad": "Move Pump",
+      "launchURL": "https://movepump.com/token/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY",
+      "decimals": 6,
+      "supply": 10000000000,
+      "allow": 1
+    },
+    {
+      "id": 15,
+      "symbol": "SINU",
+      "name": "SINU",
+      "coinType": "0x39192b9d6fef5a410facff835322df18d63e6ae33ff870e36d6c762ef5a76c4e::sinu::SINU",
+      "launchPad": "Move Pump",
+      "launchURL": "https://movepump.com/token/0x39192b9d6fef5a410facff835322df18d63e6ae33ff870e36d6c762ef5a76c4e::sinu::SINU",
+      "decimals": 6,
+      "supply": 10000000000,
+      "allow": 1
+    },
+    {
+      "id": 16,
+      "symbol": "ZSSUI",
+      "name": "ZSSUI",
+      "coinType": "0x069cad5aefc3e0732f1c17c20dd4614b12cd14cc9d037e84386bf1e096daa77c::zssui::ZSSUI",
+      "launchPad": "Move Pump",
+      "launchURL": "https://movepump.com/token/0x069cad5aefc3e0732f1c17c20dd4614b12cd14cc9d037e84386bf1e096daa77c::zssui::ZSSUI",
+      "decimals": 6,
+      "supply": 10000000000,
+      "allow": 1
+    },
+    {
+      "id": 17,
+      "symbol": "ZZZ",
+      "name": "ZZZ",
+      "coinType": "0x03a2829998c5bb2198bb041c63d5999339f6bffe1a3e709e8a677567fcda3d67::zzz::ZZZ",
+      "launchPad": "Move Pump",
+      "launchURL": "https://movepump.com/token/0x03a2829998c5bb2198bb041c63d5999339f6bffe1a3e709e8a677567fcda3d67::zzz::ZZZ",
+      "decimals": 6,
+      "supply": 10000000000,
+      "allow": 1
+    },
+    {
+      "id": 18,
+      "symbol": "MEKO",
+      "name": "MEKO",
+      "coinType": "0xc60eeae744c9d755af31ca551228bb78e647333c0764d5dc870622efb1da48ea::meko::MEKO",
+      "launchPad": "Move Pump",
+      "launchURL": "https://movepump.com/token/0xc60eeae744c9d755af31ca551228bb78e647333c0764d5dc870622efb1da48ea::meko::MEKO",
+      "decimals": 6,
+      "supply": 10000000000,
+      "allow": 1
+    }
+  ],
+  "global_pair_arr": [
+    "05983d81397bdb221f592d228b16e587ed1fd8c0d5200ce203f1ff69a980796a",
+    "d09bf618022cf4f820a009fcd86c46bf6509ba8b0a7f5b52edd3b7b9f9ceef6c",
+    "bb717bdd8f5ca188fce3d493c74f9db0cfa2581319cd70b4e8595b758b1c093a",
+    "6e86048fac9edbfa55638d7c1f482b194e528e18d7db824f39ed0b5eb2acba81",
+    "c84495fb8a9bfc2b1c23beb848484dd24e4c19a599b841449f6da78e445a79ff",
+    "c87f55a4f5414e8b6487a527a3b16988e5f765640e7ad4c905ea8b32ce2cddbd",
+    "e20e7e611ae8e8d7db456032e4a2003a3839303c60cec89fb281d8f9aedce1ab",
+    "a8deee80673017baa99c7df330e1f4a02236c1ef48ad1b826dc23a4768624302",
+    "7b12e97f371b4c398962307b7b6579635c3efeb1cc24944fe28ba3593aa997d5",
+    "8641c6e1defcce8b2048bd36f7b13613a90acc72a7dfe61326fe434a457a2fbf"
+  ],
+  "unit_coin_price": 2.0,
+  "pinned_trending_url": "https://t.me/suitrending_boost/571",
+  "pinned_msgID": 571
+}

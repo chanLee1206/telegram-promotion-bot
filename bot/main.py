@@ -21,7 +21,7 @@ from bot.send_info_board import send_info_board
 
 from bot.api import getLast_trans_info_of_coin, fetch_account_txns, fetch_coin_details
 
-from bot.db import initialize_connection, close_connection, load_global_token_arr, fetch_db_payments, regist_payment, reg_memeToken
+from bot.db import db_initialize, close_connection, load_tokens, fetch_db_payments, regist_payment, reg_memeToken
 
 import atexit
 
@@ -425,9 +425,9 @@ async def main():
     global cur_coin_idx
     cur_coin_idx = 0
 
-    initialize_connection()
-    signal.signal(signal.SIGINT, stop_gracefully)
-    
+    db_initialize()
+
+    signal.signal(signal.SIGINT, stop_gracefully)    
     atexit.register(close_connection)
     atexit.register(globals.save_globals)
 

@@ -16,7 +16,7 @@ db_config = {
 
 connection = None
 
-def initialize_connection():
+def db_initialize():
     """Initialize the global database connection."""
     global connection
     if connection is None:
@@ -32,7 +32,7 @@ def get_connection():
     global connection
     """Retrieve the current database connection."""
     if connection is None:
-        initialize_connection()
+        db_initialize()
     return connection
 
 def close_connection():
@@ -44,7 +44,7 @@ def close_connection():
         connection = None
         print("Database connection closed.")
 
-def load_global_token_arr():
+def load_tokens():
     """Load data from tb_tokens into global_token_arr."""
     conn = get_connection()
     if conn:
@@ -60,6 +60,26 @@ def load_global_token_arr():
 
                 # print("Data loaded successfully:", token_arr)
                 return token_arr
+            
+            conn.commit()
+        except pymysql.MySQLError as err:
+            print(f"Error during query: {err}")
+    else:
+        print("Database connection is not available.")
+        
+def load_pairs():
+    conn = get_connection()
+    if conn:
+        try:
+            with conn.cursor() as cursor:
+                # query = "SELECT symbol, name, launchPad, decimals, coinType, supply FROM tb_tokens where allow = 1"
+                query = "SELECT pairId FROM tb_tokens INNER JOIN tb_pairs ON tb_tokens.id = tb_pairs.token_id WHERE allow = 1;"
+                cursor.execute(query)
+                result = cursor.fetchall()
+                pair_arr = [item[0] for item in result]
+                # print(pair_arr)
+                
+                return pair_arr
             
             conn.commit()
         except pymysql.MySQLError as err:
