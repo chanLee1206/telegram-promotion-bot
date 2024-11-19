@@ -1,4 +1,5 @@
 import asyncio
+import socketio
 import signal
 
 import time  
@@ -22,6 +23,8 @@ from bot.db import initialize_connection, close_connection, load_global_token_ar
 import atexit
 
 import globals
+
+sio = socketio.AsyncClient()
 
 cur_coin_idx = 0 
 
@@ -47,48 +50,6 @@ async def getUnitCoin() :
 async def other_task():
     while True:
         await asyncio.sleep(10)  # Example delay for other processing
-
-def regist_lastTxn(txn_info):
-    globals.last_txn_arr[txn_info['coinSymbol']] = txn_info['digest']
-
-async def track_coin_post(application, track_coin):
-    
-    # print(f"Fetching Last_txn for {track_coin} at {time.strftime('%X')}")
-
-    txn_info = await getLast_trans_info_of_coin(track_coin['coinType'], globals.last_txn_arr[track_coin['symbol']])
-    
-    if 'digest' not in txn_info:
-        return False
-
-    if globals.last_txn_arr[txn_info['coinSymbol']] == txn_info['digest']:
-        # print("Continue, not new!")
-        return False
-    else:
-        LastTxnDigest = txn_info['digest']
-        # print(txn_info)
-        await send_info_board(application.bot, CHAT_ID, txn_info)
-        regist_lastTxn(txn_info)
-
-        return True
-
-async def scrap_transactions(application, interval=7):
-    global cur_coin_idx
-
-    while True:
-        try:
-            curCoin = globals.global_token_arr[cur_coin_idx]
-            
-            if curCoin['symbol'] == "SUI":
-                unitCoinPrice = await getUnitCoin()
-            else:
-                postFlag = await track_coin_post(application, curCoin)
-
-            await asyncio.sleep(interval)
-            cur_coin_idx = (cur_coin_idx + 1) % len(globals.global_token_arr)
-
-        except Exception as e:
-            print(f"Error in poll_transactions: {e}")
-
 
 async def run_polling(application):
     await application.initialize()
@@ -399,22 +360,73 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await start_menu(update, context)
+
+async def on_connect():
+
+    print("Connected to WebSocket!")
+    await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
+        'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
+    })
+    await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
+        'pairId': '31ab399cb31e4c682f0e38cecf469742f13c190180fbae3b332468d670d28584'
+    })
+
+    await sio.emit('SUBSCRIBE_REALTIME_PAIR_STATS_CHANGED', {
+        'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356'
+    })
+        
+    print("Subscription message sent.")
+
+@sio.event
+async def connect():
+    print("Socket connected!")
+    await on_connect()
+    
+@sio.event
+async def connect_error(data):
+    print(f"Connection failed with error: {data}")
+
+@sio.event
+async def disconnect():
+    print("Disconnected from WebSocket!")
+
+@sio.on("TRANSACTION")
+async def handle_transaction(data):
+    try:
+        print(data, '\n')
+    except Exception as e:
+        print(f"Error processing transaction: {e}")
+
+# @sio.on("PAIR_STATS_CHANGED")  # Match the event name used in the API guide
+async def handle_pair(data):
+    print("Pair stats changed::")
+    print(data, '\n')
+
+async def track_transactions():
+    # global sio
+    SOCKET_URL = "wss://ws-sui.raidenx.io"
+    try:
+        await sio.connect(SOCKET_URL)  # Replace with your WebSocket URL
+        print("Attempting to connect to WebSocket server...")
+
+        await sio.wait()
+    except Exception as e:
+        print(f"An error occurred: {e}") 
    
 async def main():
     global cur_coin_idx
     cur_coin_idx = 0
 
-    initialize_connection()
+    # initialize_connection()
     atexit.register(close_connection)
     atexit.register(globals.save_globals)
 
-    globals.load_globals()
-    
-    print("Initialized last_txn_arr:", globals.last_txn_arr)  # Debugging line
+    # globals.load_globals()
+    # print("Initialized last_txn_arr:", globals.last_txn_arr)  # Debugging line
 
-    if not globals.global_token_arr:
-        print("Error: global_token_arr is empty after loading.")
-        return
+    # if not globals.global_token_arr:
+    #     print("Error: global_token_arr is empty after loading.")
+    #     return
 
     application = Application.builder().token(BOT_TOKEN).read_timeout(40).write_timeout(40).build()
 
@@ -427,7 +439,9 @@ async def main():
     application.add_handler(CallbackQueryHandler(route, pattern="^(cancel|confirm_add|coinType|period_select|toStartMenu|verify_payment|confirm|ack_to_main|close)$"))
     application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
 
-    asyncio.create_task(scrap_transactions(application, interval=30))
+    # asyncio.create_task(scrap_transactions(application, interval=30))
+    asyncio.create_task(track_transactions())
+    
     await run_polling(application)
 
 if __name__ == "__main__":

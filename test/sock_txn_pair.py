@@ -5,8 +5,7 @@ import sys
 from threading import Event
 
 SOCKET_URL = "wss://ws-sui.raidenx.io"
-# pair_id = "fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356"
-pair_id = "23925a6b863a9b5a873bb1a39248ef8fdc88ac9b84bb975a5831a668b92ed962"
+pair_id = "fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356"
 
 sio = socketio.Client()
 stop_event = Event()  # Event to signal when to stop
@@ -15,10 +14,20 @@ stop_event = Event()  # Event to signal when to stop
 def connect():
     print("Connected to the WebSocket server!")
     subscription_message = {
-        "pairId": pair_id
+        # "pairId": pair_id
     }
     print(f"Subscribing to pair ID: {pair_id}")
-    sio.emit("SUBSCRIBE_REALTIME_PAIR_STATS_CHANGED", subscription_message)
+    # sio.emit('SUBSCRIBE_REALTIME_TRANSACTION', {
+    #     'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356'
+    # })
+    sio.emit('SUBSCRIBE_REALTIME_TRANSACTION', {
+        'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
+        'pairId': '31ab399cb31e4c682f0e38cecf469742f13c190180fbae3b332468d670d28584',
+    })
+   
+    sio.emit('SUBSCRIBE_REALTIME_PAIR_STATS_CHANGED', {
+        'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
+    })
 
 # Event to handle disconnection from the WebSocket
 @sio.event
@@ -26,9 +35,14 @@ def disconnect():
     print("Disconnected from the WebSocket server!")
 
 # Event to handle real-time transaction data
-@sio.on("PAIR_STATS_CHANGED")  # Match the event name used in the API guide
+# @sio.on("TRANSACTION")  # Match the event name used in the API guide
 def handle_transaction(data):
     print("Real-time transaction data received:")
+    print(json.dumps(data, indent=4))
+
+@sio.on("PAIR_STATS_CHANGED")  # Match the event name used in the API guide
+def handle_pair(data):
+    print("Pair stats changed::")
     print(json.dumps(data, indent=4))
 
 # Event for error handling
