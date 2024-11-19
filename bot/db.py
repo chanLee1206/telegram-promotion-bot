@@ -106,15 +106,15 @@ async def reg_memeToken(token):
 
     try:
         with connection.cursor() as cursor:
-            # Insert into tokens if the symbol does not already exist
-            query = """
+            # Insert into tb_tokens if the symbol does not already exist
+            query_token = """
                 INSERT INTO tb_tokens (symbol, name, launchpad, launchURL, coinType, decimals, supply)
                 SELECT %s, %s, %s, %s, %s, %s, %s
                 FROM DUAL
                 WHERE NOT EXISTS (
                     SELECT 1 FROM tb_tokens WHERE symbol = %s
                 );"""
-            data = (
+            data_token = (
                 token.get('symbol'),
                 token.get('name'),
                 detect_launchpad(token['launchURL']),
@@ -122,24 +122,42 @@ async def reg_memeToken(token):
                 token['coinType'],
                 token.get('decimals'),
                 token.get('supply'),
-                token.get('symbol'),  # Added this to match the WHERE clause placeholder
+                token.get('symbol'),  # Match the WHERE clause placeholder
             )
-            cursor.execute(query, data)
-        
-        # Check if the row was inserted (affected rows)
-        if cursor.rowcount == 0:
-            message = f"Token {token.get('symbol')} already exists."
-        else:
-            connection.commit()
-            success = True
-            message = f"Token {token.get('symbol')} has been successfully added."
+            cursor.execute(query_token, data_token)
+
+            # Check if the row was inserted
+            if cursor.rowcount == 0:
+                message = f"Token {token.get('symbol')} already exists."
+            else:
+                # Get the inserted token ID
+                token_id_query = "SELECT id FROM tb_tokens WHERE symbol = %s;"
+                cursor.execute(token_id_query, (token.get('symbol'),))
+                token_id = cursor.fetchone()[0]
+
+                # Insert the associated DEX pairs into tb_pairs
+                dexes = token.get('dexes', [])
+                if dexes:
+                    query_pairs = """
+                        INSERT INTO tb_pairs (token_id, pairId, dexName, liquidityUsd)
+                        VALUES (%s, %s, %s, %s);
+                    """
+                    data_pairs = [
+                        (token_id, dex['pairId'], dex['dexName'], dex.get('liquidityUsd'))
+                        for dex in dexes
+                    ]
+                    cursor.executemany(query_pairs, data_pairs)
+
+                connection.commit()
+                success = True
+                message = f"Token {token.get('symbol')} and its DEX pairs have been successfully added."
 
     except pymysql.MySQLError as e:
-        message = f"Failed to add token {token.get('symbol')}. Error: {e}"
+        message = f"Failed to add token {token.get('symbol')} or its DEX pairs. Error: {e}"
         connection.rollback()
 
     return success, message
-    
+  
 async def regist_payment(user_data, payment_data) :
 
     period_ms = {'12hours': 43200000, '24hours': 86400000, '48hours': 172800000, '3days': 259200000,

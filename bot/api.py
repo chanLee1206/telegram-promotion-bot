@@ -4,25 +4,22 @@ from datetime import datetime, timezone
 import globals
 
 # Fetch coin details
-async def fetch_coin_details(coin_type):
-    url = f"https://api.blockberry.one/sui/v1/coins/{coin_type}"
-    headers = {
-        "accept": "*/*",
-        "x-api-key": "MVPNEj1vnMdkHsYrZppVgcoqYbJWcH"
-    }
-
+async def fetch_coin_details(coinType):
+    url = f"https://api.raidenx.io/api/v1/sui/tokens/{coinType}"
+   
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers) as response:
+        async with session.get(url) as response:
             if response.status == 200:
                 coin_details = await response.json()
+                # return coin_details
                 return {
-                    'coinType': coin_details.get('coinType'),
-                    'name': coin_details.get('coinName'),
-                    'symbol': coin_details.get('coinSymbol'),
+                    'symbol': coin_details.get('symbol'),
+                    'name': coin_details.get('name'),
+                    'coinType': coin_details.get('address'),
                     'decimals': coin_details.get('decimals'),
                     'price': coin_details.get('price'),
-                    'supply': coin_details.get('supply'),
-                    'marketCap': coin_details.get('fdv')
+                    'supply': coin_details.get('totalSupply'),
+                    'dexes': coin_details.get('dexes'),
                 }
             else:
                 print(f"Error: {response.status}")

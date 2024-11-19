@@ -390,7 +390,7 @@ async def connect_error(data):
 async def disconnect():
     print("Disconnected from WebSocket!")
 
-@sio.on("TRANSACTION")
+# @sio.on("TRANSACTION")
 async def handle_transaction(data):
     try:
         print(data, '\n')
