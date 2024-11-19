@@ -357,9 +357,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def on_connect():
     print("Connected to WebSocket!")
-    for pair_id in globals.global_pair_arr:
-        await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {'pairId': pair_id})
-        print(f"Emitted subscription for pairId: {pair_id}")
+    for pair_item in globals.global_pair_arr:
+        await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {'pairId': pair_item.get('pairId')})
+        print(f"Emitted subscription for pairId: {pair_item.get('pairId')}")
     # await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
     #     'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
     # })

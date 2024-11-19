@@ -73,10 +73,10 @@ def load_pairs():
         try:
             with conn.cursor() as cursor:
                 # query = "SELECT symbol, name, launchPad, decimals, coinType, supply FROM tb_tokens where allow = 1"
-                query = "SELECT pairId FROM tb_tokens INNER JOIN tb_pairs ON tb_tokens.id = tb_pairs.token_id WHERE allow = 1;"
+                query = "SELECT pairId, coinType FROM tb_tokens INNER JOIN tb_pairs ON tb_tokens.id = tb_pairs.token_id WHERE allow = 1;"
                 cursor.execute(query)
                 result = cursor.fetchall()
-                pair_arr = [item[0] for item in result]
+                pair_arr = [{'pairId' : item[0], 'coinType': item[1]} for item in result]
                 # print(pair_arr)
                 
                 return pair_arr
@@ -86,6 +86,7 @@ def load_pairs():
             print(f"Error during query: {err}")
     else:
         print("Database connection is not available.")
+
 
 def fetch_Cointype(coin_type):
     conn = get_connection()

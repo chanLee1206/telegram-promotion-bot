@@ -40,6 +40,40 @@ async def fetch_pair_details(pairId):
             else:
                 print(f"Error: {response.status}")
                 return None
+
+async def load_rank_data():
+    result_array = []
+
+    for token in globals.global_token_arr:
+        # Filter pairs matching the current token's coinType
+        pairsOftoken = [pair["pairId"] for pair in globals.global_pair_arr if pair["coinType"] == token["coinType"]]
+
+        # Initialize aggregated data
+        token_data = {
+            "coinType": token["coinType"],
+            "marketCap": 0,
+            "holder": 0,
+            "liquidity": 0,
+            "volume": 0,
+            "transaction": 0,
+            "maker": 0,
+        }
+
+        for pair in pairsOftoken:
+            # Fetch details for each pair
+            pairInfo = await fetch_pair_details(pair)
+            
+            # Extract and aggregate relevant fields
+            token_data["marketCap"] = float(pairInfo["tokenBase"]["price"]) * int(pairInfo["tokenBase"]["totalSupply"])
+            token_data["holder"] = pairInfo["totalHolders"]
+            token_data["liquidity"] += pairInfo["liquidity"]
+            token_data["volume"] += pairInfo["stats"]["volume"]
+            token_data["transaction"] += pairInfo["stats"]["totalNumTxn"]
+            token_data["maker"] += pairInfo["stats"]["maker"]
+
+        # Append the aggregated data to the result array
+        result_array.append(token_data)  
+    return result_array
             
 # Get transaction amounts
 async def get_transaction_amounts(digest):
