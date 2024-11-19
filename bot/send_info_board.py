@@ -8,19 +8,26 @@ from telegram.constants import ParseMode
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
-from bot.api import fetch_coin_details
+from bot.api import fetch_coin_details, fetch_pair_details
 
 import globals
 
 async def send_info_board(bot, chat_id: str, txn_info) -> None:
-    print('channel_board_add')
     print(txn_info)
     coin_symbol = txn_info.get('token').split('::')[-1]
     search_coinType = txn_info.get('token')
     selected_token = next((item for item in globals.global_token_arr if item['coinType'] == search_coinType), None)
 
     api_coin_data = await fetch_coin_details(search_coinType)
+    api_pair_data = await fetch_pair_details(txn_info['pairId'])
     liquidity = api_coin_data.get('liquidity_usd', '_')
+    price_vari_6h = api_pair_data.get('stats','New').get('percent','New').get('6h','New')
+
+    if float(price_vari_6h)<0 :
+        price_vari_6h = ""
+    else :
+        price_vari_6h = f"+{price_vari_6h}%"
+    print('channel_board_add')
     
     # print(search_coinType, ' : ', selected_token)
 
@@ -34,7 +41,7 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
         f"{image_particles}\n\n"  
         f"➡️ <b>{float(txn_info['quoteAmount']):.2f,} SUI</b> (${float(txn_info['totalUsd']):.2f,})\n"  
         f"⬅️ <b>{int(txn_info['baseAmount']):,} </b> ${coin_symbol}\n\n"  
-        f"👤 <a href='https://suiscan.xyz/mainnet/account/{txn_info['maker'].get('address')}/activity'>0x{txn_info['maker'].get('address')[:2]}...{txn_info['maker'].get('address')[-3:]}</a>: New <a href='https://suiscan.xyz/mainnet/tx/{txn_info['hash']}'>TXN</a>\n"
+        f"👤 <a href='https://suiscan.xyz/mainnet/account/{txn_info['maker'].get('address')}/activity'>0x{txn_info['maker'].get('address')[:2]}...{txn_info['maker'].get('address')[-3:]}</a>: {price_vari_6h} <a href='https://suiscan.xyz/mainnet/tx/{txn_info['hash']}'>TXN</a>\n"
 
         # f"{price_variation_str}"  # Display formatted price variation with line break
         f"💧 <b>Liquidity:</b> ${int(liquidity):,}\n"
