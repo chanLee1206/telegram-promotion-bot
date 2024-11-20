@@ -10,7 +10,7 @@ def fetch_coinData(coinType):
         response = requests.get(url)        
         if response.status_code == 200:
             data = response.json()  
-            print("coin data received:", json.dumps(data, indent=4))
+            print("dex data received:", json.dumps(data, indent=4))
         else:
             print(f"Failed to fetch transaction data. Status Code: {response.status_code}")
             print(f"Response: {response.text}")
@@ -24,7 +24,7 @@ def fetch_dexes_coin(coinType):
         response = requests.get(url)        
         if response.status_code == 200:
             data = response.json()  
-            print("coin data received:", json.dumps(data, indent=4))
+            print("coin dexes data :", json.dumps(data, indent=4))
         else:
             print(f"Failed to fetch transaction data. Status Code: {response.status_code}")
             print(f"Response: {response.text}")
@@ -44,12 +44,12 @@ def fetch_pair_data(pair_id):
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
 def main():
-    coinType = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
-    fetch_coinData(coinType)
-    coinType = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
-    fetch_dexes_coin(coinType)
-    # pair_id = "05983d81397bdb221f592d228b16e587ed1fd8c0d5200ce203f1ff69a980796a"
-    # fetch_pair_data(pair_id)    
+    # coinType = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
+    # fetch_coinData(coinType)
+    # coinType = "0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY"
+    # fetch_dexes_coin(coinType)
+    pair_id = "05983d81397bdb221f592d228b16e587ed1fd8c0d5200ce203f1ff69a980796a"
+    fetch_pair_data(pair_id)    
     # pair_id = "d09bf618022cf4f820a009fcd86c46bf6509ba8b0a7f5b52edd3b7b9f9ceef6c"
     # fetch_pair_data(pair_id)    
     # # fetch_pair_data(pair_id)

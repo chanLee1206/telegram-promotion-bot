@@ -20,7 +20,7 @@ from bot.config import BOT_TOKEN, CHAT_ID
 
 from bot.send_info_board import send_tracking_token, send_ranking
 
-from bot.api import getLast_trans_info_of_coin, fetch_account_txns, fetch_coin_details, load_rank_data
+from bot.api import fetch_coin_dexes, fetch_coin_details, load_rank_data
 
 from bot.db import db_initialize, close_connection, load_tokens, fetch_db_payments, regist_payment, reg_memeToken
 
@@ -105,6 +105,8 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     if input_seq == "add_meme_token" : 
         add_coinType = input_text.strip()
         coinInfo = await fetch_coin_details(add_coinType)
+        coinDexes = await fetch_coin_dexes(add_coinType)
+        coinInfo['dexes'] = coinDexes
         print(coinInfo)
         context.user_data['add_token_info'] = coinInfo
         if coinInfo:
@@ -178,7 +180,6 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             await delete_last_message(update, context)  # Delete the user's reply
             
 async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    global input_seq
     query = update.callback_query
     await query.answer()
   
@@ -360,7 +361,7 @@ async def on_connect():
     print("Connected to WebSocket!")
     for pair_item in globals.global_pair_arr:
         await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {'pairId': pair_item.get('pairId')})
-        print(f"Emitted subscription for pairId: {pair_item.get('pairId')}")
+        # print(f"Emitted subscription for pairId: {pair_item.get('pairId')}")
     # await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
     #     'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
     # })
@@ -476,10 +477,10 @@ async def run_ranking():
     global application
     
     rank_data = await load_rank_data()
-    print('rank_data\n', json.dumps(rank_data, indent=4))
+    # print('rank_data\n', json.dumps(rank_data, indent=4))
     
     rank_score = await calc_rank_score(rank_data)
-    print('rank_score\n', json.dumps(rank_score, indent=4))
+    # print('rank_score\n', json.dumps(rank_score, indent=4))
 
     await send_ranking(application.bot, CHAT_ID, rank_score)
 

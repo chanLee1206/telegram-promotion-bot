@@ -5,6 +5,7 @@ import time
 from datetime import datetime, timedelta
 
 # from bot.api import fetch_account_txns
+# from bot.api import fetch_coin_dexes
 
 db_config = {
     'host': 'autorack.proxy.rlwy.net',
@@ -158,6 +159,8 @@ async def reg_memeToken(token):
 
                 # Insert the associated DEX pairs into tb_pairs
                 dexes = token.get('dexes', [])
+                # dexes = await fetch_coin_dexes(token['coinType'])          
+                
                 if dexes:
                     query_pairs = """
                         INSERT INTO tb_pairs (token_id, pairId, dexName, liquidityUsd)
