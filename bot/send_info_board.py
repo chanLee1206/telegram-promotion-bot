@@ -1,4 +1,4 @@
-# send_info_board.py
+# send_tracking_token.py
 import os
 
 import string
@@ -12,8 +12,8 @@ from bot.api import fetch_coin_details, fetch_pair_details
 
 import globals
 
-async def send_info_board(bot, chat_id: str, txn_info) -> None:
-    print(txn_info)
+async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
+    # print(txn_info)
     coin_symbol = txn_info.get('token').split('::')[-1]
     search_coinType = txn_info.get('token')
     selected_token = next((item for item in globals.global_token_arr if item['coinType'] == search_coinType), None)
@@ -56,17 +56,8 @@ async def send_info_board(bot, chat_id: str, txn_info) -> None:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Path to your image file
     # image_path = os.path.join(os.path.dirname(__file__), "../assets/ancy_expand.png")
-
-    # # Send image with caption as message content
-    # await bot.send_photo(
-    #     chat_id=chat_id,
-    #     photo=open(image_path, 'rb'),
-    #     caption=message,
-    #     parse_mode=ParseMode.HTML,
-    #     reply_markup=reply_markup
-    # )
+    # await bot.send_photo(chat_id=chat_id,photo=open(image_path, 'rb'), caption=message, parse_mode=ParseMode.HTML,reply_markup=reply_markup)
 
     await bot.send_message(
         chat_id=chat_id,

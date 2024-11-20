@@ -3,6 +3,7 @@ import socketio
 
 import signal
 import sys
+import json
 from threading import Event
 
 import time  
@@ -17,9 +18,9 @@ from telegram.ext import Application, ContextTypes, CommandHandler, CallbackQuer
 from bot.config import BOT_TOKEN, CHAT_ID
 
 
-from bot.send_info_board import send_info_board
+from bot.send_info_board import send_tracking_token
 
-from bot.api import getLast_trans_info_of_coin, fetch_account_txns, fetch_coin_details
+from bot.api import getLast_trans_info_of_coin, fetch_account_txns, fetch_coin_details, load_rank_data
 
 from bot.db import db_initialize, close_connection, load_tokens, fetch_db_payments, regist_payment, reg_memeToken
 
@@ -388,8 +389,8 @@ async def handle_transaction(data):
     try:
         # print(data, '\n')
         if data.get('tradingType') == "BUY" :
-            await send_info_board(application.bot, CHAT_ID, data)
-        # await send_info_board(application.bot, CHAT_ID, data)
+            await send_tracking_token(application.bot, CHAT_ID, data)
+        # await send_tracking_token(application.bot, CHAT_ID, data)
         
     except Exception as e:
         print(f"Error processing transaction: {e}")
@@ -417,7 +418,71 @@ def stop_gracefully(signal_received, frame):
     stop_event.set()  # Signal to stop the main loop
     sio.disconnect()  # Disconnect from WebSocket
     sys.exit(0)       # Exit the script
+
+async def calc_rank_score(rank_data):
+    # Weights for each parameter
+    weights = {
+        'marketCap': 0.2,
+        'holder': 0.15,
+        'liquidity': 0.15,
+        'volume': 0.2,
+        'transaction': 0.15,
+        'maker': 0.15
+    }
+
+    # Parameters to normalize
+    parameters = ["marketCap", "holder", "liquidity", "volume", "transaction", "maker"]
+
+    # Initialize max and min values for each parameter
+    max_min_values = {param: {"max": float('-inf'), "min": float('inf')} for param in parameters}
+
+    # Determine the max and min values for normalization
+    for item in rank_data:
+        for param in parameters:
+            value = item[param]
+            if value > max_min_values[param]["max"]:
+                max_min_values[param]["max"] = value
+            if value < max_min_values[param]["min"]:
+                max_min_values[param]["min"] = value
+
+    # Calculate normalized scores and rank scores
+    rank_scores = []
+    for item in rank_data:
+        normalized_scores = {}
+        for param in parameters:
+            max_val = max_min_values[param]["max"]
+            min_val = max_min_values[param]["min"]
+            # Normalize using min-max scaling
+            if max_val != min_val:
+                normalized_scores[param] = (item[param] - min_val) / (max_val - min_val) * 100
+            else:
+                normalized_scores[param] = 0  # Handle case where max == min
+
+        # Calculate rank score using weights
+        rank_score = sum(normalized_scores[param] * weights[param] for param in parameters)
+        rank_scores.append({"symbol": item["symbol"], "coinType": item["coinType"], "score": rank_score})
+
+    # Sort by score in descending order
+    sorted_rank_scores = sorted(rank_scores, key=lambda x: x['score'], reverse=True)
+
+    # Assign ranks
+    for i, item in enumerate(sorted_rank_scores, start=1):
+        item['rank'] = i
+
+    return sorted_rank_scores
+
    
+async def run_ranking():
+    global application
+    
+    rank_data = await load_rank_data()
+    print('rank_data\n', json.dumps(rank_data, indent=4))
+    
+    rank_score = await calc_rank_score(rank_data)
+    print('rank_score\n', json.dumps(rank_score, indent=4))
+
+    # await send_tracking_token(application.bot, CHAT_ID, rank_score)
+    
 async def main():
     global application
 
@@ -429,6 +494,9 @@ async def main():
 
     globals.load_globals()
 
+    await run_ranking()
+    return
+    
     application = Application.builder().token(BOT_TOKEN).read_timeout(40).write_timeout(40).build()
 
     application.add_handler(CommandHandler("start", start_command))

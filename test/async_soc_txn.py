@@ -1,5 +1,6 @@
 import socketio
 import asyncio
+import json
 
 sio = socketio.AsyncClient()
 
@@ -13,6 +14,10 @@ async def on_connect():
 
     await sio.emit('SUBSCRIBE_REALTIME_PAIR_STATS_CHANGED', {
         'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356'
+    })
+
+    sio.emit('SUBSCRIBE_REALTIME_TRANSACTION', { 
+        'maker': '0xd6840994167c67bf8063921.......17da41b3f64bb328db1687ddd713c5281',
     })
         
     print("Subscription message sent.")
@@ -30,17 +35,17 @@ async def connect_error(data):
 async def disconnect():
     print("Disconnected from WebSocket!")
 
-@sio.on("TRANSACTION")
+# @sio.on("TRANSACTION")
 async def handle_transaction(data):
     try:
         print(data, '\n')
     except Exception as e:
         print(f"Error processing transaction: {e}")
 
-# @sio.on("PAIR_STATS_CHANGED")  # Match the event name used in the API guide
+@sio.on("PAIR_STATS_CHANGED")  # Match the event name used in the API guide
 async def handle_pair(data):
     print("Pair stats changed::")
-    print(data, '\n')
+    print(json.dumps(data, indent=4), '\n')
 
 async def main():
     SOCKET_URL = "wss://ws-sui.raidenx.io"

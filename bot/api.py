@@ -51,6 +51,7 @@ async def load_rank_data():
         # Initialize aggregated data
         token_data = {
             "coinType": token["coinType"],
+            "symbol" : token["symbol"],
             "marketCap": 0,
             "holder": 0,
             "liquidity": 0,
@@ -65,11 +66,11 @@ async def load_rank_data():
             
             # Extract and aggregate relevant fields
             token_data["marketCap"] = float(pairInfo["tokenBase"]["price"]) * int(pairInfo["tokenBase"]["totalSupply"])
-            token_data["holder"] = pairInfo["totalHolders"]
-            token_data["liquidity"] += pairInfo["liquidity"]
-            token_data["volume"] += pairInfo["stats"]["volume"]
-            token_data["transaction"] += pairInfo["stats"]["totalNumTxn"]
-            token_data["maker"] += pairInfo["stats"]["maker"]
+            token_data["holder"] = int(pairInfo["totalHolders"])
+            token_data["liquidity"] += float(pairInfo["liquidity"])
+            token_data["volume"] += (float(pairInfo["stats"]["volume"]['1h'])*24+float(pairInfo["stats"]["volume"]['6h'])*1.5 +float(pairInfo["stats"]["volume"]['24h'])*0.25)
+            token_data["transaction"] += (float(pairInfo["stats"]["totalNumTxn"]['1h'])*24+float(pairInfo["stats"]["totalNumTxn"]['6h'])*1.5 +float(pairInfo["stats"]["totalNumTxn"]['24h'])*0.25)
+            token_data["maker"] += (float(pairInfo["stats"]["maker"]['1h'])*24+float(pairInfo["stats"]["maker"]['6h'])*1.5 +float(pairInfo["stats"]["maker"]['24h'])*0.25)
 
         # Append the aggregated data to the result array
         result_array.append(token_data)  

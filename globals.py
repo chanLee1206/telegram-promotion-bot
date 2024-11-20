@@ -2,7 +2,7 @@
 import json
 import os
 from bot.db import load_tokens, load_pairs 
-from bot.api import load_rank_data
+# from bot.api import load_rank_data
 
 FILENAME = os.path.join(os.path.dirname(__file__), "global_data.json")
 
@@ -20,9 +20,9 @@ def load_globals():
 
     global_token_arr = load_tokens() #load from db
     global_pair_arr = load_pairs()
-    rank_src_data = load_rank_data(global_pair_arr)
+    # rank_src_data = load_rank_data(global_pair_arr)
 
-    print(global_token_arr, "\n", global_pair_arr)
+    # print(global_token_arr, "\n", global_pair_arr)
     
     try:
         with open(FILENAME, "r") as f:
