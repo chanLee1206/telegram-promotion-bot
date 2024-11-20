@@ -68,6 +68,12 @@ async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
     # image_path = os.path.join(os.path.dirname(__file__), "../assets/ancy_expand.png")
     # await bot.send_photo(chat_id=chat_id,photo=open(image_path, 'rb'), caption=message, parse_mode=ParseMode.HTML,reply_markup=reply_markup)
 
+    try:
+        await bot.unpin_all_chat_messages(chat_id=chat_id)
+        print("All pinned messages unpinned successfully.")
+    except Exception as e:
+        print(f"Error unpinning messages: {e}")
+        
     await bot.send_message(
         chat_id=chat_id,
         text=message,
