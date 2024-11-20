@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from threading import Timer
 
 from bot.validator import validate_coinType, validate_boosting_period, validate_wallet_address
+from bot.api import fetch_account_txns, fetch_coin_details
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, ContextTypes, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext, ApplicationBuilder
@@ -315,8 +316,11 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if query.data == "confirm_add" :
         # print('you confirm add!')
         res, res_message = await reg_memeToken(context.user_data['add_token_info'])
+        
         if (res == True) :
-            await query.edit_message_text(text=f"Adding success! Wait for allow. {res_message}")
+            token_id = res_message
+            update_tokens_pairs(token_id, context.user_data['add_token_info'])
+            await query.edit_message_text(text=f"Adding success! {res_message}")
         else :
             await query.edit_message_text(text=f"Failt to regist! {res_message}")
     if query.data == "close":
@@ -343,6 +347,30 @@ async def check_vaild_payment(amount, server_account="0xd6840994167c67bf8063921f
     print('filtered_txns', filtered_detected_txns)
     
     return filtered_detected_txns
+
+def update_tokens_pairs(token_id, tokenInfo) :
+    # print(token_id, tokenInfo)
+
+# Append to global_token_arr
+    globals.global_token_arr.append({
+        "id": token_id,
+        "symbol": tokenInfo['symbol'],
+        "name": tokenInfo['name'],
+        "coinType": tokenInfo['coinType'],
+        "launchPad": "Move Pump",  # Assuming the launchPad is always "Move Pump"
+        "launchURL": tokenInfo['launchURL'],
+        "decimals": tokenInfo['decimals'],
+        "supply": int(tokenInfo['supply']),  # Convert supply to integer
+        "allow": 1  # Assuming allow is always 1
+    })
+
+    # Append to global_pair_arr
+    for dex in tokenInfo['dexes']:
+        globals.global_pair_arr.append({
+            "pairId": dex['pairId'],
+            "coinType": tokenInfo['coinType']
+        })
+
 
 # Get the timestamp for 15 minutes ahead
 
@@ -515,6 +543,7 @@ async def main():
     application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
 
     # asyncio.create_task(scrap_transactions(application, interval=30))
+
     asyncio.create_task(track_transactions())
     asyncio.create_task(schedule_ranking_task())
     

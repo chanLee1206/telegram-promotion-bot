@@ -89,6 +89,44 @@ async def load_rank_data():
         result_array.append(token_data)  
     return result_array
             
+# Fetch account transactions
+async def fetch_account_txns(account, amount, start_timestamp=1704067200000):
+    url = f"https://api.blockberry.one/sui/v1/accounts/{account}/activity?size=20&orderBy=DESC"
+    headers = {
+        "accept": "*/*",
+        "x-api-key": "F9Y7kRMOYmfHycPaRrWBjRNLrIQmx0"
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as response:
+            if response.status == 200:
+                res = await response.json()
+                txn_detail = res.get('content')
+                extracted_data = []
+                for item in txn_detail:
+                    timestamp = item.get('timestamp')
+                    if timestamp < start_timestamp:
+                        continue
+                    coins = item.get('details').get('detailsDto').get('coins')[0]
+                    digest = item.get('digest')
+                    fromAccount = item.get('activityWith')[0].get('id')
+
+                    new_dict = {
+                        "account": account,
+                        "timestamp": timestamp,
+                        "amount": coins.get('amount'),
+                        "digest": digest,
+                        "symbol": coins.get("symbol"),
+                        "coinType": coins.get('coinType'),
+                        "fromAccount": fromAccount
+                    }
+                    if new_dict['coinType'] != "0x2::sui::SUI" or abs(new_dict['amount'] - amount) > 0.1:
+                        continue
+                    extracted_data.append(new_dict)
+                return extracted_data
+            else:
+                print(f"Error: {response.status}")
+                return None
 
 
 

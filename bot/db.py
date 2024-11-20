@@ -52,7 +52,8 @@ def load_tokens():
         try:
             with conn.cursor() as cursor:
                 # query = "SELECT id, symbol, name, launchPad, decimals, coinType, supply FROM tb_tokens where allow = 1"
-                query = "SELECT * FROM tb_tokens where allow = 1"
+                # query = "SELECT * FROM tb_tokens where allow = 1"
+                query = "SELECT * FROM tb_tokens "
                 cursor.execute(query)
                 results = cursor.fetchall()
                 column_names = [desc[0] for desc in cursor.description]
@@ -74,7 +75,8 @@ def load_pairs():
         try:
             with conn.cursor() as cursor:
                 # query = "SELECT symbol, name, launchPad, decimals, coinType, supply FROM tb_tokens where allow = 1"
-                query = "SELECT pairId, coinType FROM tb_tokens INNER JOIN tb_pairs ON tb_tokens.id = tb_pairs.token_id WHERE allow = 1;"
+                # query = "SELECT pairId, coinType FROM tb_tokens INNER JOIN tb_pairs ON tb_tokens.id = tb_pairs.token_id WHERE allow = 1;"
+                query = "SELECT pairId, coinType FROM tb_tokens INNER JOIN tb_pairs ON tb_tokens.id = tb_pairs.token_id ;"
                 cursor.execute(query)
                 result = cursor.fetchall()
                 pair_arr = [{'pairId' : item[0], 'coinType': item[1]} for item in result]
@@ -151,6 +153,7 @@ async def reg_memeToken(token):
             # Check if the row was inserted
             if cursor.rowcount == 0:
                 message = f"Token {token.get('symbol')} already exists."
+                return (False, message)
             else:
                 # Get the inserted token ID
                 token_id_query = "SELECT id FROM tb_tokens WHERE symbol = %s;"
@@ -175,6 +178,7 @@ async def reg_memeToken(token):
                 connection.commit()
                 success = True
                 message = f"Token {token.get('symbol')} and its DEX pairs have been successfully added."
+                return True, token_id
 
     except pymysql.MySQLError as e:
         message = f"Failed to add token {token.get('symbol')} or its DEX pairs. Error: {e}"
