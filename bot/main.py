@@ -32,8 +32,6 @@ application = None
 sio = socketio.AsyncClient()
 stop_event = Event()  # Event to signal when to stop
 
-input_seq = {}
-
 front_msg_id = ""
 front_chat_id = ""
 
@@ -96,35 +94,38 @@ async def start_menu(update_or_query, context: ContextTypes.DEFAULT_TYPE):
 
    
 async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    global input_seq
+    # global input_seq
+    user_data = context.user_data  # Unique to each user
+    input_seq = user_data.get("input_seq", None)  # Get user-specific state
     input_text = update.message.text
 
     # Validate coin type
     
-    bot_message_id = context.user_data.get('bot_message_id')
+    bot_message_id = user_data.get('bot_message_id')
     if input_seq == "add_meme_token" : 
         add_coinType = input_text.strip()
         coinInfo = await fetch_coin_details(add_coinType)
         coinDexes = await fetch_coin_dexes(add_coinType)
         coinInfo['dexes'] = coinDexes
         print(coinInfo)
-        context.user_data['add_token_info'] = coinInfo
+        user_data['add_token_info'] = coinInfo
         if coinInfo:
             # print(coinInfo)
             await update.message.reply_text(text=f"Input launchPad URL : \n ex) https://movepump.com/token/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY", parse_mode='HTML',disable_web_page_preview=True)
-            input_seq = "input_launchURL"
+            # input_seq = "input_launchURL"
+            user_data["input_seq"] = "input_launchURL"
         else : 
             await update.message.reply_text(text=f"Invalid meme Token, try again", parse_mode='HTML')
         return
     if input_seq == "input_launchURL" :
         launchURL = input_text.strip()
-        context.user_data['add_token_info']['launchURL'] = launchURL
+        user_data['add_token_info']['launchURL'] = launchURL
         message_text = (
-            f"<b>{context.user_data['add_token_info'].get('name')}</b>\n\n"
-            f"Symbol : {context.user_data['add_token_info'].get('symbol')}"
-            f"Name: {context.user_data['add_token_info'].get('name')}\n"
-            f"LaunchPad URL: {context.user_data['add_token_info'].get('launchURL')}\n"
-            f"Ca:\n <code>{context.user_data['add_token_info'].get('coinType')}</code>\n"                
+            f"<b>{user_data['add_token_info'].get('name')}</b>\n\n"
+            f"Symbol : {user_data['add_token_info'].get('symbol')}"
+            f"Name: {user_data['add_token_info'].get('name')}\n"
+            f"LaunchPad URL: {user_data['add_token_info'].get('launchURL')}\n"
+            f"Ca:\n <code>{user_data['add_token_info'].get('coinType')}</code>\n"                
         )
         reply_keyboard = [
             [InlineKeyboardButton("❌ Close", callback_data="close"),
@@ -132,15 +133,15 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         reply_markup = InlineKeyboardMarkup(reply_keyboard)
         await update.message.reply_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
         return
-    if context.user_data['user_id'] and input_seq == "coinType" :
+    if user_data['user_id'] and input_seq == "coinType" :
         coinValidating = validate_coinType(input_text.strip())
         if coinValidating['val']:
-            context.user_data['coinType'] = input_text
-            selected_token = next((token for token in globals.global_token_arr if token['coinType'] == context.user_data['coinType']), None)
+            user_data['coinType'] = input_text
+            selected_token = next((token for token in globals.global_token_arr if token['coinType'] == user_data['coinType']), None)
             print('inputted coinInfo----------', selected_token)
-            context.user_data['coinSymbol'] = selected_token['symbol']
-            context.user_data['coinName'] = selected_token['name']
-            context.user_data['launchPad'] = selected_token.get('launchPad', 'Unknown')  
+            user_data['coinSymbol'] = selected_token['symbol']
+            user_data['coinName'] = selected_token['name']
+            user_data['launchPad'] = selected_token.get('launchPad', 'Unknown')  
             
             await delete_last_message(update, context)  # Delete the user's reply
 
@@ -148,11 +149,11 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             if bot_message_id:
                 text = (
                     f"Selected Token:\n\n"
-                    f"Name : {context.user_data['coinName']}\n"
-                    f"Symbol : {context.user_data['coinSymbol']}\n"
-                    f"LuanchPad : 💸{context.user_data['launchPad']}💸\n\n"
+                    f"Name : {user_data['coinName']}\n"
+                    f"Symbol : {user_data['coinSymbol']}\n"
+                    f"LuanchPad : 💸{user_data['launchPad']}💸\n\n"
 
-                    f"CA:{context.user_data['coinType']}"
+                    f"CA:{user_data['coinType']}"
                 )
                 reply_keyboard = [
                     [InlineKeyboardButton("❌ Close", callback_data="cancel"),
@@ -228,10 +229,10 @@ async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await update.callback_query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
 
 async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    global input_seq
-    global paying_account_arr
+    user_data = context.user_data  # Unique to each user
     query = update.callback_query
     await query.answer()
+
   
     print(f"here ROUTE!-----{query.data}\n")
     
@@ -241,12 +242,13 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if query.data == "coinType" :
         context.user_data['user_id'] = query.from_user.id
         context.user_data['user_name'] = query.from_user.name
-        input_seq = "coinType"
+        user_data["input_seq"] = "coinType"
         await query.edit_message_text(
             text=f"❔ Send me the token's coinType(regist ahead): \n\n Supported Chains: SUI"
         )
         
     if query.data == "toStartMenu":
+        user_data["input_seq"] = None  # Reset state
         await start_menu(query, context)
         
     if query.data == "period_select":
@@ -270,7 +272,7 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         ]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
-        input_seq = "coinType"
+        user_data["input_seq"] ="coinType"
         await query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
 
     if query.data == "view_summary":
@@ -349,8 +351,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         'I can respond to:\n/start - Start trend\n /add - add memeToken\n /help - Show this help message'
     )
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    global input_seq
-    input_seq = "add_meme_token"
+    user_data = context.user_data
+    user_data["input_seq"] = "add_meme_token"
     await update.message.reply_text("❔ Send me the token's exact coinType \nSupported Chains: SUI\n\n ex) 0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY")
     
 
