@@ -65,7 +65,7 @@ async def load_rank_data():
             pairInfo = await fetch_pair_details(pair)
             
             # Extract and aggregate relevant fields
-            token_data["marketCap"] = float(pairInfo["tokenBase"]["price"]) * int(pairInfo["tokenBase"]["totalSupply"])
+            token_data["marketCap"] = float(pairInfo["tokenBase"]["priceUsd"]) * int(pairInfo["tokenBase"]["totalSupply"])
             token_data["holder"] = int(pairInfo["totalHolders"])
             token_data["liquidity"] += float(pairInfo["liquidity"])
             token_data["volume"] += (float(pairInfo["stats"]["volume"]['1h'])*24+float(pairInfo["stats"]["volume"]['6h'])*1.5 +float(pairInfo["stats"]["volume"]['24h'])*0.25)

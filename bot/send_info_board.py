@@ -3,6 +3,8 @@ import os
 
 import string
 from math import log10
+import datetime
+
 
 from telegram.constants import ParseMode
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -67,3 +69,56 @@ async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
         disable_web_page_preview=True
     )
 
+def format_number(num):
+    if num >= 1_000_000_000:  # Billions
+        return f"{num / 1_000_000_000:.2f}B"
+    elif num >= 1_000_000:  # Millions
+        return f"{num / 1_000_000:.2f}M"
+    elif num >= 1_000:  # Thousands
+        return f"{num / 1_000:.2f}K"
+    else:  # Less than 1,000
+        return f"{num:.2f}"
+    
+async def send_ranking(bot, chat_id: str, rank_score) -> None:    
+    rankingIcons = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+    formatted_tokens = []
+
+    # Corrected for loop
+    for index, token in enumerate(rank_score):
+        rankIcon = rankingIcons[index] if index < len(rankingIcons) else "🔘"  # Default fallback icon if out of range
+        coin_symbol = token["symbol"]
+        launchPad = token.get("launchPad", "No URL")  # Default to "No URL" if launchPad is None
+        marketCap = token.get("marketCap", 0)  # Default to "No URL" if launchPad is None
+        formatted_tokens.append(f"{rankIcon} {coin_symbol} | {format_number(marketCap)} MCap")
+
+    # Join all formatted token strings into a single paragraph
+    rank_paragraph = "\n\n".join(formatted_tokens)
+
+    # Get the current UTC time
+    utc_time = datetime.datetime.now(datetime.timezone.utc)
+    formatted_utc_time = utc_time.strftime("%H:%M:%S UTC")
+
+    # Create the message text
+    message_text = (
+        f"🍒 <b>Ancy's Trending:</b> SUI, Move Pump, PUMPFUN, MOONSHOT ...\n\n\n"     
+        f"{rank_paragraph}\n\n\n"
+        f"📅 Update time: <code>{formatted_utc_time}</code>"
+    )
+    
+    keyboard = [
+        [InlineKeyboardButton("✅Book Trending", url="https://t.me/suiTokenPromote_bot?start=1")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    # Send the message and pin it in the channel
+    message = await bot.send_message(
+        chat_id=chat_id,
+        text=message_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True
+    )
+    globals.pinned_msgID = message.message_id
+    
+    # Pin the message
+    await bot.pin_chat_message(chat_id=chat_id, message_id=message.message_id)

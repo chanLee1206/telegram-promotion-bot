@@ -18,7 +18,7 @@ from telegram.ext import Application, ContextTypes, CommandHandler, CallbackQuer
 from bot.config import BOT_TOKEN, CHAT_ID
 
 
-from bot.send_info_board import send_tracking_token
+from bot.send_info_board import send_tracking_token, send_ranking
 
 from bot.api import getLast_trans_info_of_coin, fetch_account_txns, fetch_coin_details, load_rank_data
 
@@ -460,13 +460,13 @@ async def calc_rank_score(rank_data):
 
         # Calculate rank score using weights
         rank_score = sum(normalized_scores[param] * weights[param] for param in parameters)
-        rank_scores.append({"symbol": item["symbol"], "coinType": item["coinType"], "score": rank_score})
+        rank_scores.append({"symbol": item["symbol"], "coinType": item["coinType"], "marketCap": item["marketCap"], "score": rank_score})
 
     # Sort by score in descending order
     sorted_rank_scores = sorted(rank_scores, key=lambda x: x['score'], reverse=True)
 
     # Assign ranks
-    for i, item in enumerate(sorted_rank_scores, start=1):
+    for i, item in enumerate(sorted_rank_scores, start=0):
         item['rank'] = i
 
     return sorted_rank_scores
@@ -481,8 +481,13 @@ async def run_ranking():
     rank_score = await calc_rank_score(rank_data)
     print('rank_score\n', json.dumps(rank_score, indent=4))
 
-    # await send_tracking_token(application.bot, CHAT_ID, rank_score)
-    
+    await send_ranking(application.bot, CHAT_ID, rank_score)
+
+async def schedule_ranking_task():
+    while True:
+        await run_ranking()
+        await asyncio.sleep(15 * 60)  # Wait for 15 minutes (15 * 60 seconds)
+
 async def main():
     global application
 
@@ -494,8 +499,6 @@ async def main():
 
     globals.load_globals()
 
-    await run_ranking()
-    return
     
     application = Application.builder().token(BOT_TOKEN).read_timeout(40).write_timeout(40).build()
 
@@ -510,6 +513,7 @@ async def main():
 
     # asyncio.create_task(scrap_transactions(application, interval=30))
     asyncio.create_task(track_transactions())
+    asyncio.create_task(schedule_ranking_task())
     
     await run_polling(application)
 
