@@ -10,18 +10,19 @@ from telegram.constants import ParseMode
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
-from bot.api import fetch_coin_details, fetch_pair_details, fetch_coin_dexes
+from bot.api import fetch_coin_details, fetch_pair_details, fetch_coin_info
 
 import globals
 
 async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
-    # print(txn_info)
+    print(txn_info)
     coin_symbol = txn_info.get('token').split('::')[-1]
     search_coinType = txn_info.get('token')
     selected_token = next((item for item in globals.global_token_arr if item['coinType'] == search_coinType), None)
 
-    # api_coin_data = await fetch_coin_details(search_coinType)
-    api_coin_dexes = await fetch_coin_dexes(search_coinType)
+    api_coin_info = await fetch_coin_info(search_coinType)
+    api_coin_dexes = api_coin_info.get('dexes',[])
+    # api_coin_dexes = await fetch_coin_dexes(search_coinType)
     api_pair_data = await fetch_pair_details(txn_info['pairId'])
 
     liquidity_usd = sum(float(dex["liquidityUsd"]) for dex in api_coin_dexes)

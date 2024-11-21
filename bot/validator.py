@@ -1,4 +1,5 @@
 from bot.db import fetch_Cointype
+
 def validate_coinType(coinType: str) -> bool:
     record = fetch_Cointype(coinType)
     print('fetch from database :-------------- ', record)

@@ -399,8 +399,8 @@ async def handle_transaction(data):
     global application
     try:
         # print(data, '\n')
-        if data.get('tradingType') == "BUY" and float(data.get('quoteAmount'))>15 :
-            await send_tracking_token(application.bot, CHAT_ID, data)
+        # if data.get('tradingType') == "BUY" and float(data.get('quoteAmount'))>=10 :
+        await send_tracking_token(application.bot, CHAT_ID, data)
         
     except Exception as e:
         print(f"Error processing transaction: {e}")

@@ -9,6 +9,10 @@ async def on_connect():
     print("Connected to WebSocket!")
     await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
         'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
+        # 'pairId': '31ab399cb31e4c682f0e38cecf469742f13c190180fbae3b332468d670d28584'
+    })
+
+    await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
         'pairId': '31ab399cb31e4c682f0e38cecf469742f13c190180fbae3b332468d670d28584'
     })
 
@@ -16,7 +20,7 @@ async def on_connect():
         'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356'
     })
 
-    sio.emit('SUBSCRIBE_REALTIME_TRANSACTION', { 
+    await sio.emit('SUBSCRIBE_REALTIME_TRANSACTION', { 
         'maker': '0xd6840994167c67bf8063921.......17da41b3f64bb328db1687ddd713c5281',
     })
         
@@ -35,7 +39,7 @@ async def connect_error(data):
 async def disconnect():
     print("Disconnected from WebSocket!")
 
-# @sio.on("TRANSACTION")
+@sio.on("TRANSACTION")
 async def handle_transaction(data):
     try:
         print(data, '\n')

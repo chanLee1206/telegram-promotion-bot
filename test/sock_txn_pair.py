@@ -20,8 +20,11 @@ def connect():
     # sio.emit('SUBSCRIBE_REALTIME_TRANSACTION', {
     #     'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356'
     # })
+    # sio.emit('SUBSCRIBE_REALTIME_TRANSACTION', {
+    #     'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
+    # })
     sio.emit('SUBSCRIBE_REALTIME_TRANSACTION', {
-        'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
+        
     })
    
     sio.emit('SUBSCRIBE_REALTIME_PAIR_STATS_CHANGED', {
@@ -39,7 +42,7 @@ def handle_transaction(data):
     print("Real-time transaction data received:")
     print(json.dumps(data, indent=4))
 
-# @sio.on("PAIR_STATS_CHANGED")  # Match the event name used in the API guide
+@sio.on("PAIR_STATS_CHANGED")  # Match the event name used in the API guide
 def handle_pair(data):
     print("Pair stats changed::")
     print(json.dumps(data, indent=4))
