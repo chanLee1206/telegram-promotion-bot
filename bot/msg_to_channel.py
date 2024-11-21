@@ -4,7 +4,7 @@ import os
 import string
 from math import log10
 import datetime
-
+import asyncio
 
 from telegram.constants import ParseMode
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
@@ -22,15 +22,9 @@ async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
 
     # api_coin_data = await fetch_coin_details(search_coinType)
     api_coin_dexes = await fetch_coin_dexes(search_coinType)
-    
     api_pair_data = await fetch_pair_details(txn_info['pairId'])
 
     liquidity_usd = sum(float(dex["liquidityUsd"]) for dex in api_coin_dexes)
-    # print(api_coin_dexes, '\n')
-    # print(liquidity_usd, '\n')
-    
-    # liquidity = api_coin_dexes.get('liquidity_usd', '_')
-    
     price_vari_6h = float(api_pair_data.get('stats','New').get('percent','New').get('6h','New'))
 
     if float(price_vari_6h)<0 :
@@ -38,13 +32,9 @@ async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
     else :
         price_vari_6h = f"+{price_vari_6h:.2f}%"
     print('channel_board_add')
-    
-    # print(search_coinType, ' : ', selected_token)
 
     img_cnt = int(log10(float(txn_info['quoteAmount']) + 1) * 10) + 1
     image_particles = "🟢" *  img_cnt  
-    # coin_symbol = selected_token['symbol']
-
     
     message = (
         f"<b>${coin_symbol} :  {txn_info['tradingType']}!</b>\n\n"  # Bolded for emphasis
@@ -59,7 +49,6 @@ async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
         
         f"🏆<a href='{globals.pinned_trending_url}'>Trending</a> | 👁️<a href='{selected_token['launchURL']}'>{selected_token['launchPad']}</a>"         
     )
-    # print(message)
     keyboard = [
         [InlineKeyboardButton(f"Buy {coin_symbol} on {selected_token['launchPad']}", url=f"{selected_token['launchURL']}")]
     ]
@@ -71,16 +60,17 @@ async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
     try:
         await bot.unpin_all_chat_messages(chat_id=chat_id)
         print("All pinned messages unpinned successfully.")
+        await asyncio.sleep(5)
+        await bot.send_message(
+            chat_id=chat_id,
+            text=message,
+            parse_mode=ParseMode.HTML,
+            reply_markup=reply_markup,
+            disable_web_page_preview=True
+        )
+        print("Add recent trending dashlead.")
     except Exception as e:
         print(f"Error unpinning messages: {e}")
-        
-    await bot.send_message(
-        chat_id=chat_id,
-        text=message,
-        parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup,
-        disable_web_page_preview=True
-    )
 
 def format_number(num):
     if num >= 1_000_000_000:  # Billions
@@ -100,18 +90,15 @@ async def send_ranking(bot, chat_id: str, rank_score) -> None:
     for index, token in enumerate(rank_score):
         rankIcon = rankingIcons[index] if index < len(rankingIcons) else "🔘"  # Default fallback icon if out of range
         coin_symbol = token["symbol"]
-        launchPad = token.get("launchPad", "No URL")  # Default to "No URL" if launchPad is None
-        marketCap = token.get("marketCap", 0)  # Default to "No URL" if launchPad is None
+        launchPad = token.get("launchPad", "No URL")  
+        marketCap = token.get("marketCap", 0)  
         formatted_tokens.append(f"{rankIcon} {coin_symbol} | {format_number(marketCap)} MCap")
 
-    # Join all formatted token strings into a single paragraph
     rank_paragraph = "\n\n".join(formatted_tokens)
 
-    # Get the current UTC time
     utc_time = datetime.datetime.now(datetime.timezone.utc)
     formatted_utc_time = utc_time.strftime("%H:%M:%S UTC")
 
-    # Create the message text
     message_text = (
         f"🍒 <b>Ancy's Trending:</b> SUI, Move Pump, PUMPFUN, MOONSHOT ...\n\n\n"     
         f"{rank_paragraph}\n\n\n"

@@ -19,7 +19,7 @@ from telegram.ext import Application, ContextTypes, CommandHandler, CallbackQuer
 from bot.config import BOT_TOKEN, CHAT_ID
 
 
-from bot.send_info_board import send_tracking_token, send_ranking
+from bot.msg_to_channel import send_tracking_token, send_ranking
 
 from bot.api import fetch_coin_dexes, fetch_coin_details, load_rank_data
 
@@ -41,17 +41,7 @@ verification_timers = {}
 
 paying_account_arr = []
 
-async def other_task():
-    while True:
-        await asyncio.sleep(10)  # Example delay for other processing
 
-async def run_polling(application):
-    await application.initialize()
-    await application.start()
-    await application.updater.start_polling()
-    
-    while True:
-        await asyncio.sleep(0.1)
 
 async def delete_last_message(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
@@ -91,9 +81,83 @@ async def start_menu(update_or_query, context: ContextTypes.DEFAULT_TYPE):
         print('bot_message_id', context.user_data['bot_message_id'])
         await update_or_query.edit_message_text(text=message_text, parse_mode="HTML", reply_markup=reply_markup)
 
+def get_trendReceiveAccount() : 
+    return "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"
 
+async def check_vaild_payment(amount, server_account="0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"):
+    amount = float(amount)
+    current_time = datetime.now()
+    time_ahead = current_time - timedelta(minutes=15)
+    timestamp_ahead = int(time_ahead.timestamp()*1000)
 
-   
+    # amount = 100000000
+    # timestamp_ahead = 0
+    
+    detected_txns = await fetch_account_txns(server_account, amount, timestamp_ahead)
+    # digests = await fetch_db_payments(server_account, int(time_ahead.timestamp()*1000))
+    digests = await fetch_db_payments(server_account, timestamp_ahead)
+    print('detected_txns', detected_txns, '\n')
+    print('db_txns', digests, '\n')
+    
+    digest_set = {item['digest'] for item in digests}
+    filtered_detected_txns = [item for item in detected_txns if item['digest'] not in digest_set]
+    print('filtered_txns', filtered_detected_txns)
+    
+    return filtered_detected_txns
+
+def update_tokens_pairs(token_id, tokenInfo) :
+    # print(token_id, tokenInfo)
+
+    # Append to global_token_arr
+    globals.global_token_arr.append({
+        "id": token_id,
+        "symbol": tokenInfo['symbol'],
+        "name": tokenInfo['name'],
+        "coinType": tokenInfo['coinType'],
+        "launchPad": "Move Pump",  # Assuming the launchPad is always "Move Pump"
+        "launchURL": tokenInfo['launchURL'],
+        "decimals": tokenInfo['decimals'],
+        "supply": int(tokenInfo['supply']),  # Convert supply to integer
+        "allow": 1  # Assuming allow is always 1
+    })
+
+    # Append to global_pair_arr
+    for dex in tokenInfo['dexes']:
+        globals.global_pair_arr.append({
+            "pairId": dex['pairId'],
+            "coinType": tokenInfo['coinType']
+        })
+
+async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    period = context.user_data['period']
+    cost = context.user_data['cost']
+    server_account = get_trendReceiveAccount()
+    context.user_data['server_account'] = server_account
+    message_text = (
+        "⚡ <b>ANCY Trending Boost</b> ⚡\n\n"
+        f"<b>Top Trending  for {period}</b>\n\n"
+        f"<b>Token Name: </b>{context.user_data['coinName']}\n"
+        f"<b>Token Symbol: </b>{context.user_data['coinSymbol']}\n\n"
+        # "<b>Telegram:</b> https://t.me/AncyPeosiPortal\n\n"
+        f"🔗 <b>Activate the boost by sending {cost} SUI to:</b>\n"
+        f"<code>{server_account}</code>\n\n"
+        f"<b>Step 1:</b> Send {cost} SUI\n"
+        "<b>Step 2:</b> Click Verify Payment to verify the transaction\n"
+        "<b>Step 3:</b> Watch ANCY soar to the Top trending shortly!\n\n"
+        "🚀 <i>Get ready for a double dose of trending power!</i> 🚀\n\n"
+    )
+    keyboard = [
+        [InlineKeyboardButton("✅ Verify Payment", callback_data="verify_payment")],
+        [InlineKeyboardButton("🔙 Back", callback_data="period_select")],        
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    
+    if update.message:
+        await update.message.edit_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+    elif update.callback_query:
+        await update.callback_query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+
 async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # global input_seq
     user_data = context.user_data  # Unique to each user
@@ -180,55 +244,7 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 reply_markup=reply_markup
             )
             await delete_last_message(update, context)  # Delete the user's reply
-            
-async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
-  
-    print(f"Boost!-----{query.data}\n")
-
-    callback_data = query.data
-    if callback_data.startswith("boost_"):
-        # Parse the period and cost from the callback data
-        period, cost = callback_data.split("_")[1:3]
-        context.user_data['period'] = period
-        context.user_data['cost'] = cost
-        await summaryView(update, context)
-
-def get_trendReceiveAccount() : 
-    return "0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"
-
-
-async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    period = context.user_data['period']
-    cost = context.user_data['cost']
-    server_account = get_trendReceiveAccount()
-    context.user_data['server_account'] = server_account
-    message_text = (
-        "⚡ <b>ANCY Trending Boost</b> ⚡\n\n"
-        f"<b>Top Trending  for {period}</b>\n\n"
-        f"<b>Token Name: </b>{context.user_data['coinName']}\n"
-        f"<b>Token Symbol: </b>{context.user_data['coinSymbol']}\n\n"
-        # "<b>Telegram:</b> https://t.me/AncyPeosiPortal\n\n"
-        f"🔗 <b>Activate the boost by sending {cost} SUI to:</b>\n"
-        f"<code>{server_account}</code>\n\n"
-        f"<b>Step 1:</b> Send {cost} SUI\n"
-        "<b>Step 2:</b> Click Verify Payment to verify the transaction\n"
-        "<b>Step 3:</b> Watch ANCY soar to the Top trending shortly!\n\n"
-        "🚀 <i>Get ready for a double dose of trending power!</i> 🚀\n\n"
-    )
-    keyboard = [
-        [InlineKeyboardButton("✅ Verify Payment", callback_data="verify_payment")],
-        [InlineKeyboardButton("🔙 Back", callback_data="period_select")],        
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    
-    if update.message:
-        await update.message.edit_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
-    elif update.callback_query:
-        await update.callback_query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
-
+ 
 async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_data = context.user_data  # Unique to each user
     query = update.callback_query
@@ -326,53 +342,17 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if query.data == "close":
         await query.message.delete()
         
-
-async def check_vaild_payment(amount, server_account="0xd6840994167c67bf8063921f5da138a17da41b3f64bb328db1687ddd713c5281"):
-    amount = float(amount)
-    current_time = datetime.now()
-    time_ahead = current_time - timedelta(minutes=15)
-    timestamp_ahead = int(time_ahead.timestamp()*1000)
-
-    # amount = 100000000
-    # timestamp_ahead = 0
-    
-    detected_txns = await fetch_account_txns(server_account, amount, timestamp_ahead)
-    # digests = await fetch_db_payments(server_account, int(time_ahead.timestamp()*1000))
-    digests = await fetch_db_payments(server_account, timestamp_ahead)
-    print('detected_txns', detected_txns, '\n')
-    print('db_txns', digests, '\n')
-    
-    digest_set = {item['digest'] for item in digests}
-    filtered_detected_txns = [item for item in detected_txns if item['digest'] not in digest_set]
-    print('filtered_txns', filtered_detected_txns)
-    
-    return filtered_detected_txns
-
-def update_tokens_pairs(token_id, tokenInfo) :
-    # print(token_id, tokenInfo)
-
-# Append to global_token_arr
-    globals.global_token_arr.append({
-        "id": token_id,
-        "symbol": tokenInfo['symbol'],
-        "name": tokenInfo['name'],
-        "coinType": tokenInfo['coinType'],
-        "launchPad": "Move Pump",  # Assuming the launchPad is always "Move Pump"
-        "launchURL": tokenInfo['launchURL'],
-        "decimals": tokenInfo['decimals'],
-        "supply": int(tokenInfo['supply']),  # Convert supply to integer
-        "allow": 1  # Assuming allow is always 1
-    })
-
-    # Append to global_pair_arr
-    for dex in tokenInfo['dexes']:
-        globals.global_pair_arr.append({
-            "pairId": dex['pairId'],
-            "coinType": tokenInfo['coinType']
-        })
-
-
-# Get the timestamp for 15 minutes ahead
+async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+  
+    callback_data = query.data
+    if callback_data.startswith("boost_"):
+        # Parse the period and cost from the callback data
+        period, cost = callback_data.split("_")[1:3]
+        context.user_data['period'] = period
+        context.user_data['cost'] = cost
+        await summaryView(update, context)
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
@@ -392,6 +372,7 @@ async def on_connect():
     for pair_item in globals.global_pair_arr:
         await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {'pairId': pair_item.get('pairId')})
         # print(f"Emitted subscription for pairId: {pair_item.get('pairId')}")
+
     # await sio.emit("SUBSCRIBE_REALTIME_TRANSACTION", {
     #     'pairId': 'fd08ebdeb69d67541aa6f0b07cc98a9752516c5667f559367e329de4f5d77356',
     # })
@@ -419,9 +400,8 @@ async def handle_transaction(data):
     global application
     try:
         # print(data, '\n')
-        if data.get('tradingType') == "BUY" :
+        if data.get('tradingType') == "BUY" and float(data.get('quoteAmount'))>15 :
             await send_tracking_token(application.bot, CHAT_ID, data)
-        # await send_tracking_token(application.bot, CHAT_ID, data)
         
     except Exception as e:
         print(f"Error processing transaction: {e}")
@@ -432,7 +412,6 @@ async def handle_pair(data):
     print(data, '\n')
 
 async def track_transactions():
-    # global sio
     SOCKET_URL = "wss://ws-sui.raidenx.io"
     try:
         await sio.connect(SOCKET_URL)  # Replace with your WebSocket URL
@@ -517,8 +496,16 @@ async def run_ranking():
 async def schedule_ranking_task():
     while True:
         await run_ranking()
-        await asyncio.sleep(15 * 60)  # Wait for 15 minutes (15 * 60 seconds)
+        await asyncio.sleep(30 * 60)  # Wait for 15 minutes (15 * 60 seconds)
 
+async def run_polling(application):
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    
+    while True:
+        await asyncio.sleep(0.1)
+        
 async def main():
     global application
 
@@ -541,8 +528,6 @@ async def main():
     
     application.add_handler(CallbackQueryHandler(route, pattern="^(cancel|confirm_add|coinType|period_select|toStartMenu|verify_payment|confirm|ack_to_main|close)$"))
     application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
-
-    # asyncio.create_task(scrap_transactions(application, interval=30))
 
     asyncio.create_task(track_transactions())
     asyncio.create_task(schedule_ranking_task())
