@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 from threading import Timer
 
 from bot.validator import validate_coinType, validate_boosting_period, validate_wallet_address
-from bot.api import fetch_account_txns, fetch_coin_details
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, ContextTypes, CommandHandler, CallbackQueryHandler, MessageHandler, filters, CallbackContext, ApplicationBuilder
@@ -21,7 +20,7 @@ from bot.config import BOT_TOKEN, CHAT_ID
 
 from bot.msg_to_channel import send_tracking_token, send_ranking
 
-from bot.api import fetch_coin_dexes, fetch_coin_details, load_rank_data
+from bot.api import fetch_coin_dexes, fetch_coin_details, fetch_coin_info, load_rank_data, fetch_account_txns
 
 from bot.db import db_initialize, close_connection, load_tokens, fetch_db_payments, regist_payment, reg_memeToken
 
@@ -169,15 +168,15 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     bot_message_id = user_data.get('bot_message_id')
     if input_seq == "add_meme_token" : 
         add_coinType = input_text.strip()
-        coinInfo = await fetch_coin_details(add_coinType)
-        coinDexes = await fetch_coin_dexes(add_coinType)
-        coinInfo['dexes'] = coinDexes
+        coinInfo = await fetch_coin_info(add_coinType)
+        # coinInfo = await fetch_coin_details(add_coinType)
+        # coinDexes = await fetch_coin_dexes(add_coinType)
+        # coinInfo['dexes'] = coinDexes
         print(coinInfo)
         user_data['add_token_info'] = coinInfo
         if coinInfo:
             # print(coinInfo)
             await update.message.reply_text(text=f"Input launchPad URL : \n ex) https://movepump.com/token/0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY", parse_mode='HTML',disable_web_page_preview=True)
-            # input_seq = "input_launchURL"
             user_data["input_seq"] = "input_launchURL"
         else : 
             await update.message.reply_text(text=f"Invalid meme Token, try again", parse_mode='HTML')
