@@ -15,7 +15,7 @@ from bot.api import fetch_coin_details, fetch_pair_details, fetch_coin_info
 import globals
 
 async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
-    print(txn_info)
+    # print(txn_info)
     coin_symbol = txn_info.get('token').split('::')[-1]
     search_coinType = txn_info.get('token')
     selected_token = next((item for item in globals.global_token_arr if item['coinType'] == search_coinType), None)
@@ -57,21 +57,14 @@ async def send_tracking_token(bot, chat_id: str, txn_info) -> None:
 
     # image_path = os.path.join(os.path.dirname(__file__), "../assets/ancy_expand.png")
     # await bot.send_photo(chat_id=chat_id,photo=open(image_path, 'rb'), caption=message, parse_mode=ParseMode.HTML,reply_markup=reply_markup)
+    await bot.send_message(
+        chat_id=chat_id,
+        text=message,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True
+    )
 
-    try:
-        await bot.unpin_all_chat_messages(chat_id=chat_id)
-        print("All pinned messages unpinned successfully.")
-        await asyncio.sleep(5)
-        await bot.send_message(
-            chat_id=chat_id,
-            text=message,
-            parse_mode=ParseMode.HTML,
-            reply_markup=reply_markup,
-            disable_web_page_preview=True
-        )
-        print("Add recent trending dashlead.")
-    except Exception as e:
-        print(f"Error unpinning messages: {e}")
 
 def format_number(num):
     if num >= 1_000_000_000:  # Billions
@@ -124,4 +117,10 @@ async def send_ranking(bot, chat_id: str, rank_score) -> None:
     globals.pinned_trending_url = f"https://t.me/suitrending_boost/{message.message_id}"
     
     # Pin the message
-    await bot.pin_chat_message(chat_id=chat_id, message_id=message.message_id)
+    try:
+        await bot.unpin_all_chat_messages(chat_id=chat_id)
+        print("All pinned messages unpinned successfully.")
+        await bot.pin_chat_message(chat_id=chat_id, message_id=message.message_id)
+        print("Add recent trending dashlead.")
+    except Exception as e:
+        print(f"Error unpinning messages: {e}")

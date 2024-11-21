@@ -362,7 +362,6 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     user_data["input_seq"] = "add_meme_token"
     await update.message.reply_text("❔ Send me the token's exact coinType \nSupported Chains: SUI\n\n ex) 0x197aece533dbee36b7698cead0403dfecafa421b3aaa55a15314062a5f640508::ancy::ANCY")
     
-
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await start_menu(update, context)
 
@@ -399,8 +398,8 @@ async def handle_transaction(data):
     global application
     try:
         # print(data, '\n')
-        # if data.get('tradingType') == "BUY" and float(data.get('quoteAmount'))>=10 :
-        await send_tracking_token(application.bot, CHAT_ID, data)
+        if data.get('tradingType') == "BUY" and float(data.get('quoteAmount'))>=12 :
+            await send_tracking_token(application.bot, CHAT_ID, data)
         
     except Exception as e:
         print(f"Error processing transaction: {e}")
@@ -490,7 +489,7 @@ async def run_ranking():
     rank_score = await calc_rank_score(rank_data)
     # print('rank_score\n', json.dumps(rank_score, indent=4))
 
-    await send_ranking(application.bot, CHAT_ID, rank_score)
+    await send_ranking(application.bot, CHAT_ID, rank_score[:15])
 
 async def schedule_ranking_task():
     while True:
