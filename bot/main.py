@@ -88,6 +88,41 @@ def update_tokens_pairs(token_id, tokenInfo) :
             "coinType": tokenInfo['coinType']
         })
 
+async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_data = context.user_data
+
+    period = user_data['period']
+    cost = user_data['cost']
+    
+    server_account = get_trendReceiveAccount()
+    user_data['server_account'] = server_account
+
+    coinInfo = user_data.get('coinInfo', [])
+    
+    message_text = (
+        "⚡ <b>ANCY Trending Boost</b> ⚡\n\n"
+        f"<b>Top Trending  for {period}</b>\n\n"
+        f"<b>Token Name: </b>{coinInfo['name']}\n"
+        f"<b>Token Symbol: </b>{coinInfo['symbol']}\n\n"
+        # "<b>Telegram:</b> https://t.me/AncyPeosiPortal\n\n"
+        f"🔗 <b>Activate the boost by sending {cost} SUI to:</b>\n"
+        f"<code>{server_account}</code>\n\n"
+        f"<b>Step 1:</b> Send {cost} SUI\n"
+        "<b>Step 2:</b> Click Verify Payment to verify the transaction\n"
+        "<b>Step 3:</b> Watch ANCY soar to the Top trending shortly!\n\n"
+        "🚀 <i>Get ready for a double dose of trending power!</i> 🚀\n\n"
+    )
+    keyboard = [
+        [InlineKeyboardButton("✅ Verify Payment", callback_data="verify_payment")],
+        [InlineKeyboardButton("🔙 Back", callback_data="period_select")],        
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    if update.message:
+        await update.message.edit_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+    elif update.callback_query:
+        await update.callback_query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+
 
 async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -106,7 +141,7 @@ async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
         period, cost = callback_data.split("_")[1:3]
         context.user_data['period'] = period
         context.user_data['cost'] = cost
-        # await summaryView(update, context)
+        await summaryView(update, context)
         print(context.user_data)
         return
     
@@ -378,6 +413,30 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
         context.user_data['bot_message_id'] = sent_message.message_id
         return      
+
+    if query.data == "period_select":
+        message_text = (
+            "<b>Trending Boost</b>\n"
+            "Trending boost guarantees your token on Multichain Trending\n\n"
+            "<b>Select the Period:</b>"
+        )
+
+        # Define the inline keyboard with multiple buttons in a grid format
+        keyboard = [
+            [InlineKeyboardButton("12 Hours | 45 SUI", callback_data="boost_12hours_45"),
+            InlineKeyboardButton("1 week | 350 SUI", callback_data="boost_1week_350")],
+            [InlineKeyboardButton("24 Hours | 75 SUI", callback_data="boost_24hours_75"),
+            InlineKeyboardButton("2 weeks | 600 SUI", callback_data="boost_2weeks_600")],
+            [InlineKeyboardButton("48 Hours | 125 SUI", callback_data="boost_48hours_125"),
+            InlineKeyboardButton("3 weeks | 800 SUI", callback_data="boost_3weeks_800")],
+            [InlineKeyboardButton("3 days  | 180 SUI", callback_data="boost_3days_180"),
+            InlineKeyboardButton("1 month | 1000 SUI", callback_data="boost_1month_1000")],
+            [InlineKeyboardButton("🔙 Back", callback_data="toStartMenu")]
+        ]
+
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        user_data["input_seq"] ="coinType"
+        await query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
 
     if query.data == "toStartMenu":
         user_data["input_seq"] = None  # Reset state
