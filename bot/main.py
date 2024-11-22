@@ -438,6 +438,27 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user_data["input_seq"] ="coinType"
         await query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
 
+    if query.data == "verify_payment" : 
+        user_id = user_data['user_id']
+         
+        print('here verify payment!')
+        await query.edit_message_text(text="Validating Purchase ...")
+        
+        valid_payment = await check_vaild_payment(context.user_data['cost'], context.user_data['server_account'])
+
+        if valid_payment:
+            await query.edit_message_text(
+                text="Congratulations! You succeeded in Trend boosting! 👍 Your trend boost will be applied immediately."
+            )
+            print('user_data : ', context.user_data, '\n')
+            print('payment_data : ', valid_payment[0], '\n')
+            await regist_payment(context.user_data, valid_payment[0])
+
+        else:
+            await query.edit_message_text(text="⚠️ Payment not detected! If already sent, try again in a minute.")
+            await asyncio.sleep(5)    
+            await summaryView(update, context)       # Return to summary if payment     
+
     if query.data == "toStartMenu":
         user_data["input_seq"] = None  # Reset state
         await start_menu(query, context)
