@@ -88,14 +88,6 @@ def update_tokens_pairs(token_id, tokenInfo) :
             "coinType": tokenInfo['coinType']
         })
 
-async def delete_last_message(update: Update, context: CallbackContext):
-    chat_id = update.effective_chat.id
-    message_id = update.message.message_id
-    try:
-        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-    except Exception as e:
-        print(f"Failed to delete message: {e}")
-
 async def delete_user_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         await context.bot.delete_message(
@@ -390,7 +382,7 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             "Supported Launches : move.pump | turbos.fun | hop.fun \n"            
         )
         await query.edit_message_text(text=message_text, parse_mode='HTML')
-    if query.data == "sel_move_pump" or query.data == "sel_turbos_fun" or query.data == "sel_hop_fun" :
+    if query.data in ["sel_move_pump", "sel_turbos_fun", "sel_hop_fun"]:
         if query.data =="sel_move_pump" :
             user_data["coinInfo"]["launchPad"] = 'move.pump'
         elif query.data =="sel_turbos_fun" :
@@ -418,9 +410,9 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             return
         
         token_id = res_message
-        await query.edit_message_text(text=f"You've succeeded to regist! {res_message}")
-        
+        await query.edit_message_text(text=f"You've succeeded to regist! {user_data['coinInfo']['symbol']}{res_message}")
         update_tokens_pairs(token_id, context.user_data['coinInfo'])
+        await asyncio.sleep(1)
 
         user_data['input_seq'] = "period_select"
         await handle_period_selection(context, user_data, query=query)        
