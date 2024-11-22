@@ -88,6 +88,23 @@ def update_tokens_pairs(token_id, tokenInfo) :
             "coinType": tokenInfo['coinType']
         })
 
+async def delete_last_message(update: Update, context: CallbackContext):
+    chat_id = update.effective_chat.id
+    message_id = update.message.message_id
+    try:
+        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+    except Exception as e:
+        print(f"Failed to delete message: {e}")
+
+async def delete_user_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        await context.bot.delete_message(
+            chat_id=update.effective_chat.id, 
+            message_id=update.message.message_id
+        )
+    except Exception as e:
+        print(f"Failed to delete user message: {e}")
+
 async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_data = context.user_data
 
@@ -123,6 +140,89 @@ async def summaryView(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     elif update.callback_query:
         await update.callback_query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
 
+async def handle_period_selection(context, user_data, query=None, update=None):
+    """
+    Handles the period selection logic for both msgHandler and route.
+    """
+    message_text = (
+        "<b>⚡Trending Boost⚡</b>\n"
+        "Trending boost guarantees your token on Multichain Trending\n\n"
+        "<b>Select the Period:</b>"
+    )
+    keyboard = [
+        [InlineKeyboardButton("12 Hours | 45 SUI", callback_data="boost_12hours_45"),
+         InlineKeyboardButton("1 week | 350 SUI", callback_data="boost_1week_350")],
+        [InlineKeyboardButton("24 Hours | 75 SUI", callback_data="boost_24hours_75"),
+         InlineKeyboardButton("2 weeks | 600 SUI", callback_data="boost_2weeks_600")],
+        [InlineKeyboardButton("48 Hours | 125 SUI", callback_data="boost_48hours_125"),
+         InlineKeyboardButton("3 weeks | 800 SUI", callback_data="boost_3weeks_800")],
+        [InlineKeyboardButton("3 days | 180 SUI", callback_data="boost_3days_180"),
+         InlineKeyboardButton("1 month | 1000 SUI", callback_data="boost_1month_1000")],
+        [InlineKeyboardButton("🔙 Back", callback_data="toStartMenu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    # Use `query` if it's a callback query, otherwise use `update.message`.
+    if query:
+        await query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+    elif update:
+        bot_message_id = user_data.get('bot_message_id')
+        if bot_message_id:
+            try:
+                await context.bot.edit_message_text(
+                    chat_id=update.effective_chat.id,
+                    message_id=bot_message_id,
+                    text=message_text,
+                    parse_mode="HTML",
+                    reply_markup=reply_markup
+                )
+            except Exception as e:
+                print(f"Failed to edit bot message: {e}")
+        else:
+            bot_message = await update.message.reply_text(text=message_text, parse_mode='HTML', reply_markup=reply_markup)
+            user_data['bot_message_id'] = bot_message.message_id
+
+async def show_token_confirmation(
+    context: ContextTypes.DEFAULT_TYPE, user_data: dict, chat_id: int, bot_message_id: int = None,  query = None) -> None:
+    
+    coin_info = user_data.get("coinInfo", {})
+    message_text = (
+        f"Add {coin_info.get('symbol')} token Confirmation:\n\n"
+        f"Name : {coin_info.get('name')}\n"
+        f"Symbol : {coin_info.get('symbol')}\n"
+        f"LuanchPad : 💸{coin_info.get('launchPad')}💸\n"
+        f"LaunchPad URL: {coin_info.get('launchURL')}\n\n"
+        f"CA:<code>{coin_info.get('coinType')}</code>"
+    )
+
+    reply_keyboard = [
+        [InlineKeyboardButton("❌ Close", callback_data="close"),
+         InlineKeyboardButton("✅ Add Confirm", callback_data="add_token_confirm")]
+    ]
+    reply_markup = InlineKeyboardMarkup(reply_keyboard)
+
+    try:
+        if bot_message_id:
+            # Edit the existing bot message
+            await context.bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=bot_message_id,
+                text=message_text,
+                parse_mode="HTML",
+                reply_markup=reply_markup,
+                disable_web_page_preview=True
+            )
+        elif query:
+            # Edit the callback query message
+            await query.edit_message_text(
+                text=message_text,
+                parse_mode="HTML",
+                reply_markup=reply_markup,
+                disable_web_page_preview=True
+            )
+    except Exception as e:
+        print(f"Failed to update confirmation message: {e}")
+
 
 async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -145,15 +245,6 @@ async def boost_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
         print(context.user_data)
         return
     
-    
-async def delete_last_message(update: Update, context: CallbackContext):
-    chat_id = update.effective_chat.id
-    message_id = update.message.message_id
-    try:
-        await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
-    except Exception as e:
-        print(f"Failed to delete message: {e}")
-
 async def handle_invalid_token_input(update, context, user_data, response=None):
     invalid_message = await update.message.reply_text(f"Invalid token input: {response or 'Invalid input'}!")
 
@@ -174,7 +265,6 @@ async def handle_invalid_token_input(update, context, user_data, response=None):
     bot_message = await invalid_message.reply_text(text=message_text, parse_mode='HTML')
     user_data['bot_message_id'] = bot_message.message_id
 
-
 async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # global input_seq
     input_text = update.message.text
@@ -187,6 +277,7 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     if update.message.from_user.id != user_data['user_id'] :
         return
     # Validate coin type
+    user_message_id = update.message.message_id  # Get the user's message ID
     bot_message_id = user_data.get('bot_message_id')
     
     if user_data['user_id'] and input_seq == "input_token" :
@@ -195,87 +286,42 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         if inputType == 'invalid':
             await handle_invalid_token_input(update, context, user_data, response)
             return  
+        coinType = response['coinType']
+        selected_token = next((token for token in globals.global_token_arr if token["coinType"] == coinType), None)
+
+        if selected_token :
+            user_data['coinInfo'] = selected_token
+            user_data['input_seq'] = 'period_select'
+            await delete_user_message(update, context)
+            await handle_period_selection(context, user_data, update=update)
+            return
+
+        # Delete the user message using the helper
+        
+        coinInfo = await fetch_coin_info(coinType)
+
+        if coinInfo :
+            user_data['coinInfo'] = coinInfo
         else:
-            coinType = response['coinType']
-            selected_token = next((token for token in globals.global_token_arr if token["coinType"] == coinType), None)
-            #registed token
-            # print(selected_token)
-            if selected_token :
-                user_data['coinInfo'] = selected_token
-                user_data['input_seq'] = 'period_select'
-
-                message_text = (
-                    "<b>⚡Trending Boost⚡</b>\n"
-                    "Trending boost guarantees your token on Multichain Trending\n\n"
-                    "<b>Select the Period:</b>"
-                )
-                # Define the inline keyboard with multiple buttons in a grid format
-                keyboard = [
-                    [InlineKeyboardButton("12 Hours | 45 SUI", callback_data="boost_12hours_45"),
-                    InlineKeyboardButton("1 week | 350 SUI", callback_data="boost_1week_350")],
-                    [InlineKeyboardButton("24 Hours | 75 SUI", callback_data="boost_24hours_75"),
-                    InlineKeyboardButton("2 weeks | 600 SUI", callback_data="boost_2weeks_600")],
-                    [InlineKeyboardButton("48 Hours | 125 SUI", callback_data="boost_48hours_125"),
-                    InlineKeyboardButton("3 weeks | 800 SUI", callback_data="boost_3weeks_800")],
-                    [InlineKeyboardButton("3 days  | 180 SUI", callback_data="boost_3days_180"),
-                    InlineKeyboardButton("1 month | 1000 SUI", callback_data="boost_1month_1000")],
-                    [InlineKeyboardButton("🔙 Back", callback_data="toStartMenu")]
-                ]
-
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                await update.message.delete()
-                if bot_message_id:
-                    try:
-                        await context.bot.edit_message_text(
-                            chat_id=update.effective_chat.id,
-                            message_id=bot_message_id,
-                            text=message_text,
-                            parse_mode="HTML",
-                            reply_markup=reply_markup
-                        )
-                    except Exception as e:
-                        print(f"Failed to edit bot message: {e}")
-                return
-
-            #new token
-            coinInfo = await fetch_coin_info(coinType)
-            if coinInfo :
-                user_data['coinInfo'] = coinInfo
-            else:
-                await handle_invalid_token_input(update, context, user_data, "There's no such token in SUI blockchain!")
-                return  
+            await handle_invalid_token_input(update, context, user_data, "There's no such token in SUI blockchain!")
+            return  
 
         #new token Input Case
         if inputType == "launchURL":
             print('launchURL_response', response)
             user_data['coinInfo']['launchPad'] = response['launchPad']
             user_data['coinInfo']['launchURL'] = response['launchURL']
-            coinInfo = user_data['coinInfo']
-            text = (
-                f"Add {coinInfo['symbol']} token Confirmation:\n\n"
-                f"Name : {coinInfo['name']}\n"
-                f"Symbol : {coinInfo['symbol']}\n"
-                f"LuanchPad : 💸{coinInfo['launchPad']}💸\n"
-                f"LaunchPad URL: {coinInfo['launchURL']}\n\n"
 
-                f"CA:<code>{coinInfo['coinType']}</code>"
+            # Delete the user's message
+            await delete_user_message(update, context)
+
+            # Show the confirmation message
+            await show_token_confirmation(
+                context=context,
+                user_data=user_data,
+                chat_id=update.effective_chat.id,
+                bot_message_id=bot_message_id
             )
-            reply_keyboard = [
-                [InlineKeyboardButton("❌ Close", callback_data="cancel"),
-                InlineKeyboardButton("✅ Add Confirm", callback_data="add_token_confirm")]]
-            reply_markup = InlineKeyboardMarkup(reply_keyboard)
-            await update.message.delete()
-            if bot_message_id:
-                try:
-                    await context.bot.edit_message_text(
-                        chat_id=update.effective_chat.id,
-                        message_id=bot_message_id,
-                        text=text,
-                        parse_mode="HTML",
-                        reply_markup=reply_markup
-                    )
-                except Exception as e:
-                    print(f"Failed to edit bot message: {e}")
             return
       
         elif inputType == "coinType":
@@ -319,9 +365,6 @@ async def msgHandler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
                 )
                 user_data['bot_message_id'] = bot_message.message_id  # Save the new message ID
 
-        
-            
-
 async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_data = context.user_data  # Unique to each user
     query = update.callback_query
@@ -359,20 +402,12 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         print(user_data["coinInfo"])
         user_data['input_seq'] = 'addTokenConfirm'
 
-        message_text = (
-            f"Add {user_data['coinInfo'].get('symbol')} token Confirmation:\n\n"
-            f"Name: {user_data['coinInfo'].get('name')}\n"
-            f"Symbol : {user_data['coinInfo'].get('symbol')}\n"
-            f"LuanchPad : 💸{user_data['coinInfo'].get('launchPad')}💸\n"
-            f"LaunchPad URL: {user_data['coinInfo'].get('launchURL')}\n\n"
-            
-            f"Ca:\n <code>{user_data['coinInfo'].get('coinType')}</code>\n"                
+        await show_token_confirmation(
+            context=context,
+            user_data=user_data,
+            chat_id=query.message.chat_id,
+            query=query
         )
-        reply_keyboard = [
-            [InlineKeyboardButton("❌ Close", callback_data="close"),
-            InlineKeyboardButton("✅ Confirm", callback_data="add_token_confirm")]]
-        reply_markup = InlineKeyboardMarkup(reply_keyboard)
-        await query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML', disable_web_page_preview=True)
         return        
     if query.data == "add_token_confirm":
         print("add_token_confirmation : ", user_data['coinInfo'])
@@ -415,28 +450,8 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return      
 
     if query.data == "period_select":
-        message_text = (
-            "<b>Trending Boost</b>\n"
-            "Trending boost guarantees your token on Multichain Trending\n\n"
-            "<b>Select the Period:</b>"
-        )
-
-        # Define the inline keyboard with multiple buttons in a grid format
-        keyboard = [
-            [InlineKeyboardButton("12 Hours | 45 SUI", callback_data="boost_12hours_45"),
-            InlineKeyboardButton("1 week | 350 SUI", callback_data="boost_1week_350")],
-            [InlineKeyboardButton("24 Hours | 75 SUI", callback_data="boost_24hours_75"),
-            InlineKeyboardButton("2 weeks | 600 SUI", callback_data="boost_2weeks_600")],
-            [InlineKeyboardButton("48 Hours | 125 SUI", callback_data="boost_48hours_125"),
-            InlineKeyboardButton("3 weeks | 800 SUI", callback_data="boost_3weeks_800")],
-            [InlineKeyboardButton("3 days  | 180 SUI", callback_data="boost_3days_180"),
-            InlineKeyboardButton("1 month | 1000 SUI", callback_data="boost_1month_1000")],
-            [InlineKeyboardButton("🔙 Back", callback_data="toStartMenu")]
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        user_data["input_seq"] ="coinType"
-        await query.edit_message_text(text=message_text, reply_markup=reply_markup, parse_mode='HTML')
+        user_data["input_seq"] = "coinType"
+        await handle_period_selection(context, user_data, query=query)        
 
     if query.data == "verify_payment" : 
         user_id = user_data['user_id']
@@ -621,7 +636,6 @@ async def calc_rank_score(rank_data):
 
     return sorted_rank_scores
 
-   
 async def run_ranking():
     global application
     
