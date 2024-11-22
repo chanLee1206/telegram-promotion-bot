@@ -423,31 +423,7 @@ async def route(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         update_tokens_pairs(token_id, context.user_data['coinInfo'])
 
         user_data['input_seq'] = "period_select"
-        message_text = (
-            "<b>⚡Trending Boost⚡</b>\n"
-            "Trending boost guarantees your token on Multichain Trending\n\n"
-            "<b>Select the Period:</b>"
-        )
-        # Define the inline keyboard with multiple buttons in a grid format
-        keyboard = [
-            [InlineKeyboardButton("12 Hours | 45 SUI", callback_data="boost_12hours_45"),
-            InlineKeyboardButton("1 week | 350 SUI", callback_data="boost_1week_350")],
-            [InlineKeyboardButton("24 Hours | 75 SUI", callback_data="boost_24hours_75"),
-            InlineKeyboardButton("2 weeks | 600 SUI", callback_data="boost_2weeks_600")],
-            [InlineKeyboardButton("48 Hours | 125 SUI", callback_data="boost_48hours_125"),
-            InlineKeyboardButton("3 weeks | 800 SUI", callback_data="boost_3weeks_800")],
-            [InlineKeyboardButton("3 days  | 180 SUI", callback_data="boost_3days_180"),
-            InlineKeyboardButton("1 month | 1000 SUI", callback_data="boost_1month_1000")],
-            [InlineKeyboardButton("🔙 Back", callback_data="toStartMenu")]
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        sent_message = await query.message.reply_text(
-            text=message_text, parse_mode="HTML", reply_markup=reply_markup, disable_web_page_preview=True
-        )
-        context.user_data['bot_message_id'] = sent_message.message_id
-        return      
+        await handle_period_selection(context, user_data, query=query)        
 
     if query.data == "period_select":
         user_data["input_seq"] = "coinType"
@@ -684,7 +660,7 @@ async def main():
     application.add_handler(CallbackQueryHandler(boost_callback_handler, pattern=r"^boost_"))
 
     asyncio.create_task(track_transactions())
-    # asyncio.create_task(schedule_ranking_task())
+    asyncio.create_task(schedule_ranking_task())
     
     await run_polling(application)
 
